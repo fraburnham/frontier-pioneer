@@ -1,0 +1,175 @@
+
+* Frontier Pioneer 2x
+
+*Frontier Pioneer 2x* is a simultaneous, roll-and-write game with a fixed number of rounds where players explore procedurally generated space
+sectors, scan for resources, and upgrade their ships. Players do not take turns; instead, they independently choose actions based on the
+results of a shared dice pool. There are 30 rolls total for 30-60min of play time.
+
+** Rules
+
+*** Dice
+
+A set of 6 polyhedral die are used for the shared pool.
+
+Not each die is used for each action. Below is a list of actions that each die is used in.
+
+- d4: Move / Map Sector / Resource Scan / Anomaly
+  - Typically controls distance
+- d6: Map Sector
+  - Controls "Sector Type"
+- d8: Resource Scan / Anomaly
+  - Typically controls resource type
+- d10: Map Sector / Resource Scan
+  - Typically a count of resources
+- d12: Resource Scan
+- d20: Anomaly
+  - Typically the amount of a resource that will be used.
+
+*** The Board
+
+TODO: link to printable board
+
+**** Sector Map
+
+The sector map is a bunch of squares that have 4 sections:
+
+|---|---|
+| A | B |
+|---|---|
+| C | D |
+|---|---|
+
+- A
+  - Unused
+- B
+  - Sectory Type
+- C
+  - Resource Count
+- D
+  - Resource Type
+
+At the beginning of the game there is no "map" defined. You can choose any arbitrary location and start in that sector.
+    
+**** Upgrades
+
+Upgrades require 15 resources each to enable.
+
+TODO: describe how to get upgrades based on board setup
+TODO: decide how many resources before the upgrade is usable (maybe it should vary...)
+
+- Blink Drive
+  - 2x to moves
+  - Usable resources
+    - Dark Matter
+    - Exotic Minerals
+    - Water
+- Terraforming Technology
+  - Optionally use d20 for resources in star system sectors
+  - Usable resources
+    - Raw Metals
+    - Metal Alloys
+    - Water
+- Ship Improvements
+  - +2 to resources
+  - -1 to damage
+  - Usable resources
+    - Silicon
+    - Metal Alloys
+    - Water
+- Scanner Technology
+  - Automatically map and resources when moving to a sector
+  - Usable resources
+    - Silicon
+    - Exotic Minerals
+    - Water
+
+**** Damage
+
+TODO: describe how to record damage
+
+*** Actions
+
+In each round, after the dice have been rolled, you choose an action then perform it using dice from the pool. If a natural 20 is rolled on the d20 then all
+players are forced to take the Anomaly action.
+
+**** Move
+
+When you pass through a sector you can collect the resources in it.
+
+- d4 (Warp Drive): Determines the maximum number of sectors a player can move.
+
+**** Map Sector
+
+You must discover a sector before you're able to scan it for resources. Choose one sector within the range determined by the scan range (d10) and mark it as
+having the sector type (d6).
+
+- d10 (Scan Intensity): Determines the maximum number of spaces away the scan will effect.
+- d6 (Sector Type): Determines the type of sector that is discovered.
+  1. Deep Space
+  2. Colonized Star System
+  3. Uncolonized Star System
+  4. Nebula
+     - Requires two movement points to exit
+  5. Enemy Space
+     - Suffer 2 damage to enter
+     - Does not contain resources
+  6. Deep Space
+
+**** Resource Scan
+
+Once a sector has been discovered it can be scanned for resources which can be collected by moving to that sector. You can scan the sector you're occupying.
+
+- d10 (Scan Range): Determines how far the scan reaches.
+- d8 (Resource Type): Determines the type of resource discovered.
+  1. Nothing
+  2. Water
+     - Never in deep space
+  3. Raw Metals
+  4. Metal Alloys
+  5. Silicon
+  6. Dark Matter
+     - Never in a colonized system
+  7. Exotic Minerals
+     - Never in a colonized system
+  8. Nothing
+- d12 (Resource Quantity): Determines the amount of the resource discovered.
+
+**** Anomaly (forced action)
+
+When a 20 is rolled all players are forced to take the Anomaly action.
+
+- d4 (Anomaly Range): Determines the area of effect of the anomaly.
+- d8 (Anomaly Type): Determines the nature of the anomaly.
+  1. Space Rift
+     - Forces movement (use d6)
+  2. Energy Surge
+     - Cuts mapping/scanning range -2
+  3. Asteroid Shower
+     - Causes ship damage (use d6)
+  4. Gravitational Distortion
+     - Destroy resources in two sectors in d4 range
+  5. Temporal Distortion
+     - Double cost of movment on next turn
+  6. Alien Signal
+     - Causes mapping/scanning to fail next turn
+  7. Alien encounter
+     - Causes ship damage (use d6)
+  8. Space pirates
+     - Takes all resources from mapped sectors up to d6 sectors within d4 range
+
+*** Mesuring Range
+
+TODO: range is only ever measured by lines that would be valid for movement. No diagonals.
+
+*** Scoring
+
+TODO: This will need to be a mix of resources, upgrades, explored sectors
+For now 1 pt each
+- Mapped sector
+- Resource collected
+
+10 pts each upgrade
+
+-1 pt each damage
+
+** Gameplay

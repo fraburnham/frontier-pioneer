@@ -1,0 +1,75 @@
+module Main exposing (main)
+
+import Browser
+import Html exposing (Html)
+import Html.Attributes as Attribute exposing (class)
+import Html.Events as Event
+import Random
+
+
+main =
+    Browser.element
+        { init = init
+        , update = update
+        , view = view
+        , subscriptions = subscriptions
+        }
+
+
+type alias Model =
+    Int
+
+
+init : {} -> { model : Model, command : Cmd Msg }
+init _ =
+    { model = 0
+    , command = Cmd.none
+    }
+
+
+type Msg
+    = ClickedButton
+    | GotRandomNumber Int
+
+
+getRandomNumber : Cmd Msg
+getRandomNumber =
+    Random.generate GotRandomNumber (Random.int 0 100)
+
+
+update : Msg -> Model -> { model : Model, command : Cmd Msg }
+update msg model =
+    when msg is
+        ClickedButton ->
+            { model = model
+            , command = getRandomNumber
+            }
+
+        GotRandomNumber n ->
+            { model = n
+            , command = Cmd.none
+            }
+
+
+sector : Model -> Html Msg
+sector model =
+    Html.div [ class "text-red-600 italic" ]
+        [ Html.div [] [ Html.text "a" ]
+        , Html.div [] [ Html.text "b" ]
+        , Html.div [] [ Html.text "c" ]
+        , Html.div [] [ Html.text "d" ] ]
+
+map : Model -> Html Msg
+map model =
+    Html.div []
+        [ sector model ]
+
+
+view : Model -> Html Msg
+view model =
+    map model
+
+
+subscriptions : Model -> Sub Msg
+subscriptions _ =
+    Sub.none

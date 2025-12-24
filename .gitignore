@@ -1,0 +1,6 @@
+.gren/
+*~
+.*~
+dist/
+gren_packages/
+node_modules/
