@@ -50,14 +50,34 @@ update msg model =
             , command = Cmd.none
             }
 
+sectorStyle : String
+sectorStyle = "flex flex-col border-1 size-fit divide-y-1 divide-gray-300"
+
+
+sectorRowStyle : String
+sectorRowStyle = "flex flex-row divide-x-1 divide-gray-300"
+
+
+sectorBoxStyle : String
+sectorBoxStyle = "h-[1.5rem] w-[1.5rem] flex items-center justify-center"
+
 
 sector : Model -> Html Msg
 sector model =
-    Html.div [ class "text-red-600 italic" ]
-        [ Html.div [] [ Html.text "a" ]
-        , Html.div [] [ Html.text "b" ]
-        , Html.div [] [ Html.text "c" ]
-        , Html.div [] [ Html.text "d" ] ]
+    Html.div [ class sectorStyle ]
+        [ Html.div [ class sectorRowStyle ]
+              [ Html.div [ class sectorBoxStyle ]
+                    [ Html.text "a" ]
+              , Html.div [ class sectorBoxStyle ]
+                  [ Html.text "b" ]
+              ]
+        , Html.div [ class sectorRowStyle ]
+            [ Html.div [ class sectorBoxStyle ]
+                  [ Html.text "c" ]
+            , Html.div [ class sectorBoxStyle ]
+                [ Html.text "d" ]
+            ]
+        ]
 
 map : Model -> Html Msg
 map model =
