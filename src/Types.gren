@@ -1,0 +1,39 @@
+module Types exposing (..)
+
+
+type alias Coordinates =
+    { row : Int
+    , col : Int
+    }
+
+
+type alias ResourceData =
+    { kind : String
+    , count : Int
+    }
+
+
+type Resource
+    = Discovered(ResourceData)
+    | Undiscovered
+
+
+type alias SectorData =
+    { kind : String -- TODO: make type!
+    , resource : Resource
+    , location : Coordinates
+    }
+
+
+type Sector
+    = Mapped(SectorData)
+    | Unmapped
+
+
+type alias Model =
+    { sectors : Array(Array(Sector))
+    }
+
+
+type Msg
+    = ClickedButton

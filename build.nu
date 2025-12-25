@@ -13,7 +13,7 @@ def build-css [] {
 }
 
 def serve-dev [] {
-  npx live-server dist/ --no-csp --no-css-inject --browser=echo
+  npx live-server dist/ --no-csp --no-css-inject --browser=echo --port=4444
 }
 
 def build-dev [] {
@@ -27,13 +27,13 @@ export def main [] {
   
   job spawn {
     watch src/ --glob=**/*.gren { ||
-      build-dev
+      print (build-dev)
     }
   }
 
   job spawn {
     watch src/ --glob=**/*.html { ||
-      build-dev
+      print (build-dev)
     }
   }
 
