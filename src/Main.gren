@@ -7,21 +7,37 @@ import Html.Events as Event
 import Random
 
 import Types exposing (..)
-import Map exposing (map)
+import Page exposing (page)
 
 
 main =
     Browser.element
         { init = init
         , update = update
-        , view = view
+        , view = page
         , subscriptions = subscriptions
         }
 
 
+initialSectors : Array(Array(Sector))
+initialSectors = (Array.repeat maxSectorCol (Array.repeat maxSectorRow Unmapped))
+
+
+initialUpgrades : UpgradeProgress
+initialUpgrades = 
+    { blinkDrive = 0
+    , terraformingTechnology = 0
+    , shipImprovements = 0
+    , scannerTechnology = 0
+    }
+
+
 init : {} -> { model : Model, command : Cmd Msg }
 init _ =
-    { model = { sectors = (Array.repeat 10 (Array.repeat 10 Unmapped))
+    { model = { sectors = initialSectors
+              , upgradeProgress = initialUpgrades
+              , damage = 0
+              , turnState = Nothing
               }
     , command = Cmd.none
     }
@@ -34,11 +50,6 @@ update msg model =
             { model = model
             , command = Cmd.none
             }
-
-
-view : Model -> Html Msg
-view model =
-    map model
 
 
 subscriptions : Model -> Sub Msg

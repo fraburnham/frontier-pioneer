@@ -7,8 +7,42 @@ type alias Coordinates =
     }
 
 
+type ResourceKind
+    = None
+    | Water
+    | RawMetals
+    | MetalAlloys
+    | Silicon
+    | DarkMatter
+    | ExoticMinerals
+
+
+resourceKindToName : ResourceKind -> String
+resourceKindToName rk =
+    when rk is
+        None -> "Nothing"
+        Water -> "Water"
+        RawMetals -> "Raw Metals"
+        MetalAlloys -> "Metal Alloys"
+        Silicon -> "Silicon"
+        DarkMatter -> "Dark Matter"
+        ExoticMinerals -> "Exotic Minerals"
+
+
+resourceKindToSymbol : ResourceKind -> String
+resourceKindToSymbol rk =
+    when rk is
+        None -> "X"
+        Water -> "W"
+        RawMetals -> "R"
+        MetalAlloys -> "M"
+        Silicon -> "S"
+        DarkMatter -> "D"
+        ExoticMinerals -> "E"
+
+
 type alias ResourceData =
-    { kind : String
+    { kind : ResourceKind
     , count : Int
     }
 
@@ -18,8 +52,36 @@ type Resource
     | Undiscovered
 
 
+type SectorKind
+    = DeepSpace
+    | ColonizedSystem
+    | UncolonizedSystem
+    | Nebula
+    | EnemySpace
+
+
+sectorKindToName : SectorKind -> String
+sectorKindToName sk =
+    when sk is
+        DeepSpace -> "Deep Space"
+        ColonizedSystem -> "Colonized Star System"
+        UncolonizedSystem -> "Uncolonized Star System"
+        Nebula -> "Nebula"
+        EnemySpace -> "Enemy Space"
+
+
+sectorKindToSymbol : SectorKind -> String
+sectorKindToSymbol sk =
+    when sk is
+        DeepSpace -> "D"
+        ColonizedSystem -> "C"
+        UncolonizedSystem -> "U"
+        Nebula -> "N"
+        EnemySpace -> "E"
+
+
 type alias SectorData =
-    { kind : String -- TODO: make type!
+    { kind : SectorKind
     , resource : Resource
     , location : Coordinates
     }
@@ -30,8 +92,42 @@ type Sector
     | Unmapped
 
 
+maxSectorRow : Int
+maxSectorRow = 12
+
+
+maxSectorCol : Int
+maxSectorCol = 12
+
+
+type alias RollResult = 
+    { d4 : Int
+    , d6 : Int
+    , d8 : Int
+    , d10 : Int
+    , d12 : Int
+    , d20 : Int
+    }
+
+
+type alias TurnState =
+    { roll : RollResult
+    }
+
+
+type alias UpgradeProgress =
+    { blinkDrive : Int
+    , terraformingTechnology : Int
+    , shipImprovements : Int
+    , scannerTechnology : Int
+    }
+
+
 type alias Model =
     { sectors : Array(Array(Sector))
+    , upgradeProgress : UpgradeProgress
+    , damage : Int
+    , turnState : Maybe(TurnState)
     }
 
 

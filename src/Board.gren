@@ -1,0 +1,35 @@
+module Board exposing (board)
+
+import Html exposing (Html)
+import Html.Attributes as Attribute exposing (class, title, id)
+import Html.Events as Event
+
+import Types exposing (..)
+import Map exposing (map)
+
+-- Tally marks!
+-- 𝍩
+-- 𝍪
+-- 𝍫
+-- 𝍬	
+-- 𝍸
+
+header : Html Msg
+header = 
+    Html.div [ class "font-[Russo_One] text-4xl text-center p-4" ]
+      [ Html.text "Frontier Pioneer" ]
+
+board : Model -> Html Msg
+board model =
+    Html.div [ id "board"
+             , class "flex flex-col size-fit p-4"
+             ]
+      [ header
+      , Html.div [] [ Html.text "Roll/action-state display area" ] -- This should be where the action buttons show up. Once an action is started then the sector/etc steps can happen
+      , (map model)
+      , Html.div [] [ Html.text "Upgrades" ]
+      , Html.div [] [ Html.text "Damage" ]
+      , Html.div [] [ Html.text "Score" ]
+      -- TODO: hideable roll history
+      -- TODO: hideable rules
+      ]
