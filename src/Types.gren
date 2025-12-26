@@ -41,6 +41,18 @@ resourceKindToSymbol rk =
         ExoticMinerals -> "E"
 
 
+intToResourceKind : Int -> ResourceKind
+intToResourceKind i =
+    when i is
+        2 -> Water
+        3 -> RawMetals
+        4 -> MetalAlloys
+        5 -> Silicon
+        6 -> DarkMatter
+        7 -> ExoticMinerals
+        _ -> None
+
+
 type alias ResourceData =
     { kind : ResourceKind
     , count : Int
@@ -78,6 +90,16 @@ sectorKindToSymbol sk =
         UncolonizedSystem -> "U"
         Nebula -> "N"
         EnemySpace -> "E"
+
+
+intToSectorKind : Int -> SectorKind
+intToSectorKind i =
+    when i is
+        2 -> ColonizedSystem
+        3 -> UncolonizedSystem
+        4 -> Nebula
+        5 -> EnemySpace
+        _ -> DeepSpace
 
 
 type alias SectorData =
@@ -154,3 +176,4 @@ type Msg
     | RollDice
     | Rolled RollResult
     | SelectedAction Action
+

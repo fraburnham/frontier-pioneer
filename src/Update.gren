@@ -4,7 +4,7 @@ import Array
 import Random
 
 import Types exposing (..)
-import Rules exposing (validMove, validMapSector)
+import Rules exposing (..)
 
 
 rollDice : Cmd Msg
@@ -27,16 +27,6 @@ rollDice =
       )
 
 
-getMapSectorKind : TurnState -> SectorKind
-getMapSectorKind t =
-    when t.roll.d6 is
-        2 -> ColonizedSystem
-        3 -> UncolonizedSystem
-        4 -> Nebula
-        5 -> EnemySpace
-        _ -> DeepSpace
-
-
 getSector : Model -> Coordinates -> Maybe Sector
 getSector model coords =
     when (Array.get coords.row model.sectors) is
@@ -49,14 +39,39 @@ getSector model coords =
 mapSector : TurnState -> Sector -> Sector
 mapSector t sector =
     when sector is
+        -- This should be unreachable due to validMapSector
+        Mapped s -> Mapped s
+
         Unmapped ->
-            Mapped { kind = getMapSectorKind t
+            Mapped { kind = intToSectorKind t.roll.d6
                    , resource = Undiscovered
                    }
 
+
+resourceScan : TurnState -> Sector -> Sector
+resourceScan t sector =
+    when sector is
+        -- This should be unreachable due to validResourceScan
+        Unmapped -> Unmapped
+
         Mapped s ->
-            -- TODO: this should really be an invalid selection...
-            Mapped s
+            when s.resource is
+                -- This should be unreachable due to validResourceScan
+                Discovered _ -> Mapped s
+
+                Undiscovered ->
+                    Mapped { s | resource = Discovered { kind = intToResourceKind t.roll.d8
+                                                       , count = t.roll.d12
+                                                       }
+                           }
+
+
+updateSector : (Sector -> Sector) -> Array (Array Sector) -> Coordinates -> Array (Array Sector)
+updateSector updateFn arr coords =
+    Array.update
+      coords.row
+      (\row -> Array.update coords.col updateFn row)
+      arr
 
 
 sectorClicked : Model -> Coordinates -> Model
@@ -93,21 +108,25 @@ sectorClicked model coords =
                                     when (validMapSector t.roll.d10 s l coords) is
                                         True ->
                                             { model
-                                            | sectors = Array.update
-                                                          coords.row
-                                                          (\row ->
-                                                               Array.update
-                                                                 coords.col
-                                                                 (mapSector t)
-                                                                 row
-                                                          )
-                                                          model.sectors
+                                            | sectors = updateSector (mapSector t) model.sectors coords
                                             , turnState = Nothing
                                             }
 
                                         _ -> model
 
-                        _ -> model
+                        ResourceScan ->
+                            when (getSector model coords) is
+                                Nothing -> model
+                                Just s ->
+                                    when (validResourceScan t.roll.d10 s l coords) is
+                                        False -> model
+                                        True ->
+                                            { model
+                                            | sectors = updateSector (resourceScan t) model.sectors coords
+                                            , turnState = Nothing
+                                            }
+
+                        Anomaly -> model
 
 
 updateTurnStateAction : Action -> Model -> Model

@@ -1,4 +1,4 @@
-module Rules exposing (validMove, validMapSector)
+module Rules exposing (..)
 
 import Math
 
@@ -12,17 +12,7 @@ gameDistance a b =
 
 validMove : Int -> Coordinates -> Coordinates -> Bool
 validMove movesLeft curLocation newLocation =
-    when movesLeft is
-        0 ->
-            False
-
-        _ ->
-            when (gameDistance curLocation newLocation) is
-                1 ->
-                    True
-
-                _ ->
-                    False
+    (movesLeft > 0) && ((gameDistance curLocation newLocation) == 1)
 
 
 validMapSector : Int -> Sector -> Coordinates -> Coordinates -> Bool
@@ -30,5 +20,17 @@ validMapSector range sector curLocation sectorLocation =
     ((gameDistance curLocation sectorLocation) <= range) && ( when sector is
                                                                   Mapped _ -> False
                                                                   Unmapped -> True
+                                                            )
+
+
+validResourceScan : Int -> Sector -> Coordinates -> Coordinates -> Bool
+validResourceScan range sector curLocation sectorLocation =
+    ((gameDistance curLocation sectorLocation) <= range) && ( when sector is
+                                                                  Unmapped -> False
+                                                                  Mapped s ->
+                                                                      True && ( when s.resource is
+                                                                                  Discovered _ -> False
+                                                                                  Undiscovered -> True
+                                                                              )
                                                             )
 

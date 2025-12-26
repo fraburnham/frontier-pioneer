@@ -120,6 +120,11 @@ actionArea model =
                                 , actionHint ("Select a sector to map within " ++ String.fromInt t.roll.d10 ++ " spaces.")
                                 ]
 
+                            ResourceScan ->
+                                [ dice model
+                                , actionHint ("Select a sector to scan for resources within " ++ String.fromInt t.roll.d10 ++ " spaces.")
+                                ]
+
                             _ ->
                                 [ dice model
                                 , actionButtons model ]
@@ -141,14 +146,15 @@ board model =
       , Html.div [] [ Html.text "Upgrades" ]
       , Html.div [] [ Html.text "Damage" ]
       , Html.div [] [ Html.text "Score" ]
-      -- TODO: hideable roll history
-      -- TODO: hideable rules
+      , Html.div [] [ Html.text "Roll history" ]
+      , Html.div [] [ Html.text "Rules" ]
       ]
 
--- NEXT: handle resource scan
--- NEXT: handle collecting resources
+-- NEXT: handle highlighting die involved in an action
 -- NEXT: handle anomalies in rolls
 -- NEXT: handle damage
+-- NEXT: handle collecting resources
 -- NEXT: handle upgrades
 -- NEXT: handle special movement costs
 -- NEXT: handle resource limitations
+-- NEXT: don't allow selecting an option if there will be _zero_ valid moves for it
