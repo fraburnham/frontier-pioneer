@@ -1,0 +1,54 @@
+module Update exposing (update)
+
+import Random
+
+import Types exposing (..)
+
+
+rollDice : Cmd Msg
+rollDice =
+    Random.generate Rolled
+      (Random.constant (\d4 d6 d8 d10 d12 d20 -> { d4 = d4
+                                                 , d6 = d6
+                                                 , d8 = d8
+                                                 , d10 = d10
+                                                 , d12 = d12
+                                                 , d20 = d20
+                                                 }
+                       )
+       |> Random.andMap (Random.int 1 4)
+       |> Random.andMap (Random.int 1 6)
+       |> Random.andMap (Random.int 1 8)
+       |> Random.andMap (Random.int 0 9)
+       |> Random.andMap (Random.int 1 12)
+       |> Random.andMap (Random.int 1 20)
+      )
+
+
+sectorClicked : Model -> Coordinates -> Model
+sectorClicked model coords =
+    when model.location is
+        Nothing ->
+            { model | location = Just coords }
+
+        Just l ->
+            model
+
+
+update : Msg -> Model -> { model : Model, command : Cmd Msg }
+update msg model =
+    when msg is
+        SectorClicked c ->
+            { model = sectorClicked model c
+            , command = Cmd.none
+            }
+
+        RollDice ->
+            { model = model
+            , command = rollDice
+            }
+
+        Rolled result ->
+            { model = { model | turnState = Just { roll = result } }
+            , command = Cmd.none
+            }

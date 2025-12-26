@@ -48,7 +48,7 @@ type alias ResourceData =
 
 
 type Resource
-    = Discovered(ResourceData)
+    = Discovered ResourceData
     | Undiscovered
 
 
@@ -83,12 +83,11 @@ sectorKindToSymbol sk =
 type alias SectorData =
     { kind : SectorKind
     , resource : Resource
-    , location : Coordinates
     }
 
 
 type Sector
-    = Mapped(SectorData)
+    = Mapped SectorData
     | Unmapped
 
 
@@ -110,6 +109,15 @@ type alias RollResult =
     }
 
 
+type Die
+    = D4
+    | D6
+    | D8
+    | D10
+    | D12
+    | D20
+
+
 type alias TurnState =
     { roll : RollResult
     }
@@ -124,12 +132,15 @@ type alias UpgradeProgress =
 
 
 type alias Model =
-    { sectors : Array(Array(Sector))
+    { sectors : Array (Array Sector)
     , upgradeProgress : UpgradeProgress
     , damage : Int
-    , turnState : Maybe(TurnState)
+    , turnState : Maybe TurnState
+    , location : Maybe Coordinates
     }
 
 
 type Msg
-    = ClickedButton
+    = SectorClicked Coordinates
+    | RollDice
+    | Rolled RollResult

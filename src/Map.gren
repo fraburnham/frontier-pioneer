@@ -2,18 +2,33 @@ module Map exposing (map)
 
 import Html exposing (Html)
 import Html.Attributes as Attribute exposing (class, title, id)
-import Html.Events as Event
+import Html.Events exposing (onClick)
 
 import Types exposing (..)
 
 
-sectorStyle : Sector -> String
-sectorStyle s =
-    when s is
-        Unmapped ->
-            "flex flex-col size-fit divide-y-1 divide-gray-200 hover:bg-gray-100"
-        Mapped(_) ->
-            "flex flex-col size-fit divide-y-1 divide-gray-400 hover:bg-gray-100 hover:font-medium"
+sectorStyle : Maybe Coordinates -> Int -> Int -> Sector -> String
+sectorStyle location col row s =
+    let
+        base = "flex flex-col size-fit divide-y-1 hover:bg-sky-100"
+    in
+        String.join " "
+          [ base
+          , when s is
+                Unmapped ->
+                    "divide-gray-200"
+
+                Mapped _ ->
+                    "divide-gray-400 hover:font-medium"
+           , when location is
+                 Nothing -> ""
+
+                 Just l ->
+                     if l.col == col && l.row == row then
+                         "bg-sky-100"
+                     else
+                         ""
+          ]
 
 
 sectorRowStyle : Sector -> String
@@ -21,7 +36,7 @@ sectorRowStyle s =
     when s is
         Unmapped ->
             "flex flex-row divide-x-1 divide-gray-200"
-        Mapped(_) ->
+        Mapped _ ->
             "flex flex-row divide-x-1 divide-gray-400"
 
 
@@ -29,15 +44,19 @@ sectorBoxStyle : String
 sectorBoxStyle = "h-[1.5rem] w-[1.5rem] flex items-center justify-center"
 
 
-sector : Sector -> Html Msg
-sector data =
+sector : Maybe Coordinates -> Int -> Int -> Sector -> Html Msg
+sector location col row data =
     let
-        sectorStyleResolved = sectorStyle data
         sectorRowStyleResolved = sectorRowStyle data
+        sectorAttributes = [ class (sectorStyle location col row data)
+                           , onClick (SectorClicked { row = row
+                                                    , col = col }
+                                     )
+                           ]
     in
     when data is
         Unmapped ->
-            Html.div [ class sectorStyleResolved ]
+            Html.div sectorAttributes
               [ Html.div [ class sectorRowStyleResolved ]
                   [ Html.div [ class sectorBoxStyle ]
                       []
@@ -52,8 +71,8 @@ sector data =
                   ]
               ]
 
-        Mapped(d) ->
-            Html.div [ class sectorStyleResolved ]
+        Mapped d ->
+            Html.div sectorAttributes
               [ Html.div [ class sectorRowStyleResolved ]
                   [ Html.div [ class sectorBoxStyle ]
                       []
@@ -70,7 +89,7 @@ sector data =
                               []
                           ]
 
-                    Discovered(rd) ->
+                    Discovered rd ->
                         Html.div [ class sectorRowStyleResolved ]
                           [ Html.div [ class sectorBoxStyle ]
                               [ Html.text (String.fromInt rd.count) ]
@@ -82,15 +101,15 @@ sector data =
               ]
 
 
-mapRow : Array(Sector) -> Html Msg
-mapRow sectors =
+mapRow : Maybe Coordinates -> Int -> Array(Sector) -> Html Msg
+mapRow location col sectors =
     Html.div [ class "flex flex-row divide-x-1 size-fit" ]
-      (Array.map sector sectors)
+      (Array.indexedMap (sector location col) sectors)
 
 
 map : Model -> Html Msg
 map model =
     Html.div [ id "map"
-             , class "flex flex-col border-1 divide-y-1 size-fit m-2"
+             , class "flex flex-col border-1 divide-y-1 size-fit m-2 bg-sky-50"
              ]
-      (Array.map mapRow model.sectors)
+      (Array.indexedMap (mapRow model.location) model.sectors)

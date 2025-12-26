@@ -10,5 +10,5 @@ import Board exposing (board)
 
 page : Model -> Html Msg
 page model =
-    Html.div [ class "font-['Exo_2']" ]
+    Html.div [ class "font-['Exo_2'] flex justify-center items-center" ]
       [ board model ]

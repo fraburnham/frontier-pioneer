@@ -2,7 +2,7 @@ module Board exposing (board)
 
 import Html exposing (Html)
 import Html.Attributes as Attribute exposing (class, title, id)
-import Html.Events as Event
+import Html.Events exposing (onClick)
 
 import Types exposing (..)
 import Map exposing (map)
@@ -16,8 +16,86 @@ import Map exposing (map)
 
 header : Html Msg
 header = 
-    Html.div [ class "font-[Russo_One] text-4xl text-center p-4" ]
+    Html.div [ class "font-[Russo_One] text-4xl text-center pt-4 text-shadow-xs" ]
       [ Html.text "Frontier Pioneer" ]
+
+
+die : String -> Maybe Int -> Html Msg
+die kind val =
+    Html.div []
+      [ Html.div [ class "border-b-1 border-black/50 font-light" ] [ Html.text kind ]
+      , Html.div []
+          [ Html.text ( when val is
+                            Nothing -> "?"
+                            Just v -> String.fromInt v
+                      )
+          ]
+      ]
+
+
+dice : Model -> Html Msg
+dice model =
+    Html.div [ class "flex h-[5rem] items-center text-center justify-around" ]
+      ( when model.turnState is
+            Nothing ->
+                [ die "d4" Nothing
+                , die "d6" Nothing
+                , die "d8" Nothing
+                , die "d10" Nothing
+                , die "d12" Nothing
+                , die "d20" Nothing
+                ]
+            Just t ->
+                [ die "d4" (Just t.roll.d4)
+                , die "d6" (Just t.roll.d6)
+                , die "d8" (Just t.roll.d8)
+                , die "d10" (Just t.roll.d10)
+                , die "d12" (Just t.roll.d12)
+                , die "d20" (Just t.roll.d20)
+                ]
+      )              
+
+
+actionButtons : Model -> Html Msg
+actionButtons model = 
+    let
+        buttonStyle = class "flex items-center justify-center border-1 rounded size-fit p-2 w-1/4 h-full hover:font-medium hover:border-2"
+    in
+    Html.div [ class "flex justify-around items-center text-center w-full h-[3rem]" ]
+      ( when model.turnState is
+            Nothing ->
+                [ Html.div [ buttonStyle
+                           , onClick RollDice
+                           ]
+                    [ Html.text "Roll" ]
+                ]
+
+            Just t ->
+                [ Html.div [ buttonStyle
+                           , onClick (MoveSpaces t.roll.d4)
+                           ]
+                  [ Html.text "Move" ]
+                , Html.div [ buttonStyle ]
+                    [ Html.text "Map Sector" ]
+                , Html.div [ buttonStyle ]
+                    [ Html.text "Resource Scan" ]
+                ]
+      )
+
+
+actionArea : Model -> Html Msg
+actionArea model =
+    Html.div [ class "flex flex-col mb-4 h-[8rem]" ]
+      (when model.location is
+            Nothing ->
+                [ Html.div [ class "flex italic font-medium text-center items-center justify-center h-full w-full" ]
+                    [ Html.text "Select a starting sector to begin" ]
+                ]
+            Just _ ->
+                [ dice model
+                , actionButtons model ]
+      )
+
 
 board : Model -> Html Msg
 board model =
@@ -25,11 +103,19 @@ board model =
              , class "flex flex-col size-fit p-4"
              ]
       [ header
-      , Html.div [] [ Html.text "Roll/action-state display area" ] -- This should be where the action buttons show up. Once an action is started then the sector/etc steps can happen
-      , (map model)
+      , actionArea model
+      , map model
       , Html.div [] [ Html.text "Upgrades" ]
       , Html.div [] [ Html.text "Damage" ]
       , Html.div [] [ Html.text "Score" ]
       -- TODO: hideable roll history
       -- TODO: hideable rules
       ]
+
+
+-- NEXT: handle move
+-- NEXT: handle map sector
+-- NEXT: handle resource scan
+-- NEXT: handle collecting resources
+-- NEXT: handle anomalies in rolls
+
