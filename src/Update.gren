@@ -3,6 +3,7 @@ module Update exposing (update)
 import Random
 
 import Types exposing (..)
+import Rules exposing (validMove)
 
 
 rollDice : Cmd Msg
@@ -32,12 +33,46 @@ sectorClicked model coords =
             { model | location = Just coords }
 
         Just l ->
+            when model.turnState is
+                Nothing ->
+                    model
+
+                Just t ->
+                    when t.action is
+                        NoAction ->
+                            model
+
+                        Move movesLeft ->
+                            when (validMove movesLeft l coords) is
+                                True ->
+                                    { model
+                                    | location = Just coords
+                                    , turnState = ( when movesLeft is
+                                                        1 -> Nothing
+                                                        _ -> Just { t | action = Move (movesLeft - 1) }
+                                                  )
+                                    }
+
+                                False ->
+                                    model
+
+                        _ ->
+                            model
+
+
+moveSpaces : Int -> Model -> Model
+moveSpaces movesLeft model =
+    when model.turnState is
+        Nothing ->
             model
+
+        Just t ->
+            { model | turnState = Just { t | action = (Move movesLeft) } }
 
 
 update : Msg -> Model -> { model : Model, command : Cmd Msg }
 update msg model =
-    when msg is
+    when (Debug.log "Message" msg) is
         SectorClicked c ->
             { model = sectorClicked model c
             , command = Cmd.none
@@ -49,6 +84,14 @@ update msg model =
             }
 
         Rolled result ->
-            { model = { model | turnState = Just { roll = result } }
+            { model = { model | turnState = Just { roll = result
+                                                 , action = NoAction
+                                                 }
+                      }
+            , command = Cmd.none
+            }
+
+        MoveSpaces movesLeft ->
+            { model = moveSpaces movesLeft model
             , command = Cmd.none
             }

@@ -1,0 +1,23 @@
+module Rules exposing (validMove)
+
+import Math
+
+import Types exposing (..)
+
+
+validMove : Int -> Coordinates -> Coordinates -> Bool
+validMove movesLeft curLocation newLocation =
+    when movesLeft is
+        0 ->
+            False
+
+        _ ->
+            let
+                rowDistance = Math.abs (curLocation.row - newLocation.row)
+                colDistance = Math.abs (curLocation.col - newLocation.col)
+            in
+                when (rowDistance + colDistance) is
+                    1 ->
+                        True
+                    _ ->
+                        False

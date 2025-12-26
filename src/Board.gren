@@ -86,14 +86,33 @@ actionButtons model =
 actionArea : Model -> Html Msg
 actionArea model =
     Html.div [ class "flex flex-col mb-4 h-[8rem]" ]
-      (when model.location is
+      ( when model.location is
             Nothing ->
                 [ Html.div [ class "flex italic font-medium text-center items-center justify-center h-full w-full" ]
                     [ Html.text "Select a starting sector to begin" ]
                 ]
+
             Just _ ->
-                [ dice model
-                , actionButtons model ]
+                when model.turnState is
+                    Just t ->
+                        when t.action is
+                            NoAction ->
+                                [ dice model
+                                , actionButtons model ]
+
+                            Move spacesLeft ->
+                                [ dice model
+                                , Html.div [ class "flex italic font-medium text-center items-center justify-center h-[3rem] w-full" ]
+                                    [ Html.text ("Select your next sector. You cannot move diagonally. You have " ++ String.fromInt spacesLeft ++ " moves left.") ]
+                                ]
+
+                            _ ->
+                                [ dice model
+                                , actionButtons model ]
+
+                    Nothing ->
+                        [ dice model
+                        , actionButtons model ]
       )
 
 
@@ -112,8 +131,6 @@ board model =
       -- TODO: hideable rules
       ]
 
-
--- NEXT: handle move
 -- NEXT: handle map sector
 -- NEXT: handle resource scan
 -- NEXT: handle collecting resources

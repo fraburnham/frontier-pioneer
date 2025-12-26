@@ -8,7 +8,7 @@ type alias Coordinates =
 
 
 type ResourceKind
-    = None
+    = None -- TODO: change this to NoResource
     | Water
     | RawMetals
     | MetalAlloys
@@ -118,8 +118,17 @@ type Die
     | D20
 
 
+type Action
+    = Move Int
+    | MapSector
+    | ResourceScan
+    | Anomaly
+    | NoAction
+
+
 type alias TurnState =
     { roll : RollResult
+    , action : Action
     }
 
 
@@ -144,3 +153,4 @@ type Msg
     = SectorClicked Coordinates
     | RollDice
     | Rolled RollResult
+    | MoveSpaces Int
