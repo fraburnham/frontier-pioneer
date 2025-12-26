@@ -45,7 +45,7 @@ sectorBoxStyle = "h-[1.5rem] w-[1.5rem] flex items-center justify-center"
 
 
 sector : Maybe Coordinates -> Int -> Int -> Sector -> Html Msg
-sector location col row data =
+sector location row col data =
     let
         sectorRowStyleResolved = sectorRowStyle data
         sectorAttributes = [ class (sectorStyle location col row data)
@@ -102,9 +102,9 @@ sector location col row data =
 
 
 mapRow : Maybe Coordinates -> Int -> Array(Sector) -> Html Msg
-mapRow location col sectors =
+mapRow location row sectors =
     Html.div [ class "flex flex-row divide-x-1 size-fit" ]
-      (Array.indexedMap (sector location col) sectors)
+      (Array.indexedMap (sector location row) sectors)
 
 
 map : Model -> Html Msg
