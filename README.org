@@ -103,8 +103,8 @@ When you pass through a sector you can collect the resources in it. Entering a s
 You must map a sector before you're able to scan it for resources. Choose one sector within the range determined by the scan range (d10) and mark it as
 having the sector type (d6).
 
-- d10 (Scan Intensity): Determines the maximum number of spaces away the scan will effect.
-- d6 (Sector Type): Determines the type of sector that is discovered.
+- d10 (Scan Range): Determines how far the scan reaches.
+- d6 (Sector Type): Determines the type of sector that is mapped.
   1. Deep Space
   2. Colonized Star System
   3. Uncolonized Star System
