@@ -160,6 +160,16 @@ update msg model =
             , command = Cmd.none
             }
 
+        HoveredAction ha ->
+            { model = { model | hoveredAction = Just ha }
+            , command = Cmd.none
+            }
+
+        UnhoveredAction ->
+            { model = { model | hoveredAction = Nothing }
+            , command = Cmd.none
+            }
+
         SelectedAction sa ->
             { model = updateTurnStateAction sa model
             , command = Cmd.none

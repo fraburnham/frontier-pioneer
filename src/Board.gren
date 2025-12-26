@@ -2,17 +2,11 @@ module Board exposing (board)
 
 import Html exposing (Html)
 import Html.Attributes as Attribute exposing (class, title, id)
-import Html.Events exposing (onClick)
+import Html.Events exposing (onClick, onMouseEnter, onMouseLeave)
 
 import Types exposing (..)
 import Map exposing (map)
 
--- Tally marks!
--- 𝍩
--- 𝍪
--- 𝍫
--- 𝍬	
--- 𝍸
 
 header : Html Msg
 header = 
@@ -20,9 +14,45 @@ header =
       [ Html.text "Frontier Pioneer" ]
 
 
-die : String -> Maybe Int -> Html Msg
-die kind val =
-    Html.div []
+dieStyle : Model -> Die -> String
+dieStyle model d =
+    let
+        activeStyle = ""
+        inactiveStyle = "blur-[1px] opacity-50"
+    in
+    when model.turnState is
+        Nothing -> inactiveStyle
+
+        Just t ->
+            when model.hoveredAction is
+                Nothing -> activeStyle
+
+                Just ha ->
+                    when ha is
+                        Move _ ->
+                            when d is
+                                D4 -> activeStyle
+                                _ -> inactiveStyle
+
+                        MapSector ->
+                            when d is
+                                D6 -> activeStyle
+                                D10 -> activeStyle
+                                _ -> inactiveStyle
+
+                        ResourceScan ->
+                            when d is
+                                D8 -> activeStyle
+                                D10 -> activeStyle
+                                D12 -> activeStyle
+                                _ -> inactiveStyle
+
+                        _ -> activeStyle
+
+
+die : String -> String -> Maybe Int -> Html Msg
+die style kind val =
+    Html.div [ class style ]
       [ Html.div [ class "border-b-1 border-black/50 font-light" ] [ Html.text kind ]
       , Html.div []
           [ Html.text ( when val is
@@ -35,23 +65,27 @@ die kind val =
 
 dice : Model -> Html Msg
 dice model =
+    let
+        style = dieStyle model
+    in
     Html.div [ class "flex h-[5rem] items-center text-center justify-around" ]
       ( when model.turnState is
             Nothing ->
-                [ die "d4" Nothing
-                , die "d6" Nothing
-                , die "d8" Nothing
-                , die "d10" Nothing
-                , die "d12" Nothing
-                , die "d20" Nothing
+                [ die (style D4) "d4" Nothing
+                , die (style D6) "d6" Nothing
+                , die (style D8) "d8" Nothing
+                , die (style D10) "d10" Nothing
+                , die (style D12) "d12" Nothing
+                , die (style D20) "d20" Nothing
                 ]
+
             Just t ->
-                [ die "d4" (Just t.roll.d4)
-                , die "d6" (Just t.roll.d6)
-                , die "d8" (Just t.roll.d8)
-                , die "d10" (Just t.roll.d10)
-                , die "d12" (Just t.roll.d12)
-                , die "d20" (Just t.roll.d20)
+                [ die (style D4) "d4" (Just t.roll.d4)
+                , die (style D6) "d6" (Just t.roll.d6)
+                , die (style D8) "d8" (Just t.roll.d8)
+                , die (style D10) "d10" (Just t.roll.d10)
+                , die (style D12) "d12" (Just t.roll.d12)
+                , die (style D20) "d20" (Just t.roll.d20)
                 ]
       )              
 
@@ -73,14 +107,20 @@ actionButtons model =
             Just t ->
                 [ Html.div [ buttonStyle
                            , onClick (SelectedAction (Move t.roll.d4))
+                           , onMouseEnter (HoveredAction (Move t.roll.d4))
+                           , onMouseLeave UnhoveredAction
                            ]
                     [ Html.text "Move" ]
                 , Html.div [ buttonStyle
                            , onClick (SelectedAction MapSector)
+                           , onMouseEnter (HoveredAction MapSector)
+                           , onMouseLeave UnhoveredAction
                            ]
                     [ Html.text "Map Sector" ]
                 , Html.div [ buttonStyle
                            , onClick (SelectedAction ResourceScan)
+                           , onMouseEnter (HoveredAction ResourceScan)
+                           , onMouseLeave UnhoveredAction
                            ]
                     [ Html.text "Resource Scan" ]
                 ]
@@ -150,11 +190,18 @@ board model =
       , Html.div [] [ Html.text "Rules" ]
       ]
 
--- NEXT: handle highlighting die involved in an action
+-- NEXT: handle highlighting sectors that are valid for an action
 -- NEXT: handle anomalies in rolls
 -- NEXT: handle damage
 -- NEXT: handle collecting resources
 -- NEXT: handle upgrades
 -- NEXT: handle special movement costs
--- NEXT: handle resource limitations
+-- NEXT: handle resource limitations (like showing X for count when the kind is nothing and not allowing resources in enemy space)
 -- NEXT: don't allow selecting an option if there will be _zero_ valid moves for it
+
+-- Tally marks!
+-- 𝍩
+-- 𝍪
+-- 𝍫
+-- 𝍬	
+-- 𝍸

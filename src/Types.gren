@@ -168,6 +168,7 @@ type alias Model =
     , damage : Int
     , turnState : Maybe TurnState
     , location : Maybe Coordinates
+    , hoveredAction : Maybe Action
     }
 
 
@@ -175,5 +176,7 @@ type Msg
     = SectorClicked Coordinates
     | RollDice
     | Rolled RollResult
+    | HoveredAction Action
+    | UnhoveredAction
     | SelectedAction Action
 

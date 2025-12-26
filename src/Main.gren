@@ -39,6 +39,7 @@ init _ =
               , damage = 0
               , turnState = Nothing
               , location = Nothing
+              , hoveredAction = Nothing
               }
     , command = Cmd.none
     }
