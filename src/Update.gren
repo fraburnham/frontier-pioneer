@@ -27,6 +27,10 @@ rollDice =
       )
 
 
+removeHoveredAction : Model -> Model
+removeHoveredAction model = { model | hoveredAction = Nothing }
+
+
 getSector : Model -> Coordinates -> Maybe Sector
 getSector model coords =
     when (Array.get coords.row model.sectors) is
@@ -148,7 +152,7 @@ update msg model =
             }
 
         RollDice ->
-            { model = model
+            { model = removeHoveredAction model
             , command = rollDice
             }
 
@@ -166,12 +170,12 @@ update msg model =
             }
 
         UnhoveredAction ->
-            { model = { model | hoveredAction = Nothing }
+            { model = removeHoveredAction model
             , command = Cmd.none
             }
 
         SelectedAction sa ->
-            { model = updateTurnStateAction sa model
+            { model = updateTurnStateAction sa model |> removeHoveredAction
             , command = Cmd.none
             }
 

@@ -190,13 +190,15 @@ board model =
       , Html.div [] [ Html.text "Rules" ]
       ]
 
--- NEXT: handle highlighting sectors that are valid for an action
 -- NEXT: handle anomalies in rolls
 -- NEXT: handle damage
 -- NEXT: handle collecting resources
 -- NEXT: handle upgrades
 -- NEXT: handle special movement costs
 -- NEXT: handle resource limitations (like showing X for count when the kind is nothing and not allowing resources in enemy space)
+-- NEXT: handle endgame/scoring!
+-- NEXT: handle roll history
+-- NEXT: handle rules display
 -- NEXT: don't allow selecting an option if there will be _zero_ valid moves for it
 
 -- Tally marks!

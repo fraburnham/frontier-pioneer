@@ -5,50 +5,94 @@ import Html.Attributes as Attribute exposing (class, title, id)
 import Html.Events exposing (onClick)
 
 import Types exposing (..)
+import Rules exposing (..)
 
 
-sectorStyle : Maybe Coordinates -> Int -> Int -> Sector -> String
-sectorStyle location col row s =
+sectorStyleMapped : Model -> Sector -> String
+sectorStyleMapped model s =
+    when s is
+        Unmapped -> "divide-gray-200"
+        Mapped _ -> "divide-gray-400 hover:font-medium"
+
+
+sectorStyleCurrentLocation : Model -> Int -> Int -> String
+sectorStyleCurrentLocation model col row =
+    when model.location is
+        Nothing -> ""
+        Just l ->
+            when (l.col == col && l.row == row) is
+                True -> "bg-sky-100"
+                False -> ""
+
+
+sectorStyleValidForAction : Model -> Int -> Int -> Sector -> String
+sectorStyleValidForAction model col row s =
     let
-        base = "flex flex-col size-fit divide-y-1 hover:bg-sky-100"
+        validStyle = "bg-gray-100"
+        invalidStyle = ""
+        coords = { row = row, col = col }
     in
-        String.join " "
-          [ base
-          , when s is
-                Unmapped ->
-                    "divide-gray-200"
+    when model.location is
+        Nothing -> validStyle
+        Just l ->
+            when model.turnState is
+                Nothing -> invalidStyle
+                Just t ->
+                    let
+                        checkAction = (\action ->
+                                          when action is
+                                              Move ml ->
+                                                  when (validMove ml l coords) is
+                                                      True -> validStyle
+                                                      False -> invalidStyle
 
-                Mapped _ ->
-                    "divide-gray-400 hover:font-medium"
-           , when location is
-                 Nothing -> ""
+                                              MapSector ->
+                                                  when (validMapSector t.roll.d10 s l coords) is
+                                                      True -> validStyle
+                                                      False -> invalidStyle
 
-                 Just l ->
-                     if l.col == col && l.row == row then
-                         "bg-sky-100"
-                     else
-                         ""
-          ]
+                                              ResourceScan ->
+                                                  when (validResourceScan t.roll.d10 s l coords) is
+                                                      True -> validStyle
+                                                      False -> invalidStyle
+
+                                              _ -> invalidStyle
+                                      )
+                    in
+                    when model.hoveredAction is
+                        Just ha -> checkAction ha
+                        Nothing ->
+                            when t.action is
+                                NoAction -> invalidStyle
+                                a -> checkAction a
+
+
+sectorStyle : Model -> Int -> Int -> Sector -> String
+sectorStyle model col row s =
+    String.join " "
+      [ "flex flex-col size-fit divide-y-1"
+      , sectorStyleMapped model s
+      , sectorStyleCurrentLocation model col row
+      , sectorStyleValidForAction model col row s
+      ]
 
 
 sectorRowStyle : Sector -> String
 sectorRowStyle s =
     when s is
-        Unmapped ->
-            "flex flex-row divide-x-1 divide-gray-200"
-        Mapped _ ->
-            "flex flex-row divide-x-1 divide-gray-400"
+        Unmapped -> "flex flex-row divide-x-1 divide-gray-200"
+        Mapped _ -> "flex flex-row divide-x-1 divide-gray-400"
 
 
 sectorBoxStyle : String
 sectorBoxStyle = "h-[1.5rem] w-[1.5rem] flex items-center justify-center"
 
 
-sector : Maybe Coordinates -> Int -> Int -> Sector -> Html Msg
-sector location row col data =
+sector : Model -> Int -> Int -> Sector -> Html Msg
+sector model row col data =
     let
         sectorRowStyleResolved = sectorRowStyle data
-        sectorAttributes = [ class (sectorStyle location col row data)
+        sectorAttributes = [ class (sectorStyle model col row data)
                            , onClick (SectorClicked { row = row
                                                     , col = col }
                                      )
@@ -101,10 +145,10 @@ sector location row col data =
               ]
 
 
-mapRow : Maybe Coordinates -> Int -> Array(Sector) -> Html Msg
-mapRow location row sectors =
+mapRow : Model -> Int -> Array(Sector) -> Html Msg
+mapRow model row sectors =
     Html.div [ class "flex flex-row divide-x-1 size-fit" ]
-      (Array.indexedMap (sector location row) sectors)
+      (Array.indexedMap (sector model row) sectors)
 
 
 map : Model -> Html Msg
@@ -112,4 +156,4 @@ map model =
     Html.div [ id "map"
              , class "flex flex-col border-1 divide-y-1 size-fit m-2 bg-sky-50"
              ]
-      (Array.indexedMap (mapRow model.location) model.sectors)
+      (Array.indexedMap (mapRow model) model.sectors)
