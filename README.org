@@ -94,13 +94,13 @@ players are forced to take the Anomaly action.
 
 **** Move
 
-When you pass through a sector you can collect the resources in it.
+When you pass through a sector you can collect the resources in it. Entering a sector **does not** map it.
 
 - d4 (Warp Drive): Determines the maximum number of sectors a player can move.
 
 **** Map Sector
 
-You must discover a sector before you're able to scan it for resources. Choose one sector within the range determined by the scan range (d10) and mark it as
+You must map a sector before you're able to scan it for resources. Choose one sector within the range determined by the scan range (d10) and mark it as
 having the sector type (d6).
 
 - d10 (Scan Intensity): Determines the maximum number of spaces away the scan will effect.

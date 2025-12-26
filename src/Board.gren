@@ -72,15 +72,25 @@ actionButtons model =
 
             Just t ->
                 [ Html.div [ buttonStyle
-                           , onClick (MoveSpaces t.roll.d4)
+                           , onClick (SelectedAction (Move t.roll.d4))
                            ]
-                  [ Html.text "Move" ]
-                , Html.div [ buttonStyle ]
+                    [ Html.text "Move" ]
+                , Html.div [ buttonStyle
+                           , onClick (SelectedAction MapSector)
+                           ]
                     [ Html.text "Map Sector" ]
-                , Html.div [ buttonStyle ]
+                , Html.div [ buttonStyle
+                           , onClick (SelectedAction ResourceScan)
+                           ]
                     [ Html.text "Resource Scan" ]
                 ]
       )
+
+
+actionHint : String -> Html Msg
+actionHint text =
+    Html.div [ class "flex italic font-medium text-center items-center justify-center h-[3rem] w-full" ]
+      [ Html.text text ]
 
 
 actionArea : Model -> Html Msg
@@ -102,8 +112,12 @@ actionArea model =
 
                             Move spacesLeft ->
                                 [ dice model
-                                , Html.div [ class "flex italic font-medium text-center items-center justify-center h-[3rem] w-full" ]
-                                    [ Html.text ("Select your next sector. You cannot move diagonally. You have " ++ String.fromInt spacesLeft ++ " moves left.") ]
+                                , actionHint ("Select your next sector. You cannot move diagonally. You have " ++ String.fromInt spacesLeft ++ " moves left.")
+                                ]
+
+                            MapSector ->
+                                [ dice model
+                                , actionHint ("Select a sector to map within " ++ String.fromInt t.roll.d10 ++ " spaces.")
                                 ]
 
                             _ ->
@@ -131,8 +145,10 @@ board model =
       -- TODO: hideable rules
       ]
 
--- NEXT: handle map sector
 -- NEXT: handle resource scan
 -- NEXT: handle collecting resources
 -- NEXT: handle anomalies in rolls
-
+-- NEXT: handle damage
+-- NEXT: handle upgrades
+-- NEXT: handle special movement costs
+-- NEXT: handle resource limitations

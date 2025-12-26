@@ -119,7 +119,7 @@ type Die
 
 
 type Action
-    = Move Int
+    = Move Int -- Should the action get passed the data or should it be pulled from the model?
     | MapSector
     | ResourceScan
     | Anomaly
@@ -153,4 +153,4 @@ type Msg
     = SectorClicked Coordinates
     | RollDice
     | Rolled RollResult
-    | MoveSpaces Int
+    | SelectedAction Action

@@ -1,8 +1,13 @@
-module Rules exposing (validMove)
+module Rules exposing (validMove, validMapSector)
 
 import Math
 
 import Types exposing (..)
+
+
+gameDistance : Coordinates -> Coordinates -> Int
+gameDistance a b =
+    (Math.abs (a.row - b.row)) + (Math.abs (a.col - b.col))
 
 
 validMove : Int -> Coordinates -> Coordinates -> Bool
@@ -12,12 +17,18 @@ validMove movesLeft curLocation newLocation =
             False
 
         _ ->
-            let
-                rowDistance = Math.abs (curLocation.row - newLocation.row)
-                colDistance = Math.abs (curLocation.col - newLocation.col)
-            in
-                when (rowDistance + colDistance) is
-                    1 ->
-                        True
-                    _ ->
-                        False
+            when (gameDistance curLocation newLocation) is
+                1 ->
+                    True
+
+                _ ->
+                    False
+
+
+validMapSector : Int -> Sector -> Coordinates -> Coordinates -> Bool
+validMapSector range sector curLocation sectorLocation =
+    ((gameDistance curLocation sectorLocation) <= range) && ( when sector is
+                                                                  Mapped _ -> False
+                                                                  Unmapped -> True
+                                                            )
+

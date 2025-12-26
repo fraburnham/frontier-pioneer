@@ -1,9 +1,10 @@
 module Update exposing (update)
 
+import Array
 import Random
 
 import Types exposing (..)
-import Rules exposing (validMove)
+import Rules exposing (validMove, validMapSector)
 
 
 rollDice : Cmd Msg
@@ -26,21 +27,50 @@ rollDice =
       )
 
 
+getMapSectorKind : TurnState -> SectorKind
+getMapSectorKind t =
+    when t.roll.d6 is
+        2 -> ColonizedSystem
+        3 -> UncolonizedSystem
+        4 -> Nebula
+        5 -> EnemySpace
+        _ -> DeepSpace
+
+
+getSector : Model -> Coordinates -> Maybe Sector
+getSector model coords =
+    when (Array.get coords.row model.sectors) is
+        Nothing -> Nothing
+
+        Just row ->
+            Array.get coords.col row
+
+
+mapSector : TurnState -> Sector -> Sector
+mapSector t sector =
+    when sector is
+        Unmapped ->
+            Mapped { kind = getMapSectorKind t
+                   , resource = Undiscovered
+                   }
+
+        Mapped s ->
+            -- TODO: this should really be an invalid selection...
+            Mapped s
+
+
 sectorClicked : Model -> Coordinates -> Model
 sectorClicked model coords =
     when model.location is
-        Nothing ->
-            { model | location = Just coords }
+        Nothing -> { model | location = Just coords }
 
         Just l ->
             when model.turnState is
-                Nothing ->
-                    model
+                Nothing -> model
 
                 Just t ->
                     when t.action is
-                        NoAction ->
-                            model
+                        NoAction -> model
 
                         Move movesLeft ->
                             when (validMove movesLeft l coords) is
@@ -56,18 +86,38 @@ sectorClicked model coords =
                                 False ->
                                     model
 
-                        _ ->
-                            model
+                        MapSector ->
+                            when (getSector model coords) is
+                                Nothing -> model
+                                Just s ->
+                                    when (validMapSector t.roll.d10 s l coords) is
+                                        True ->
+                                            { model
+                                            | sectors = Array.update
+                                                          coords.row
+                                                          (\row ->
+                                                               Array.update
+                                                                 coords.col
+                                                                 (mapSector t)
+                                                                 row
+                                                          )
+                                                          model.sectors
+                                            , turnState = Nothing
+                                            }
+
+                                        _ -> model
+
+                        _ -> model
 
 
-moveSpaces : Int -> Model -> Model
-moveSpaces movesLeft model =
+updateTurnStateAction : Action -> Model -> Model
+updateTurnStateAction action model =
     when model.turnState is
         Nothing ->
             model
 
         Just t ->
-            { model | turnState = Just { t | action = (Move movesLeft) } }
+            { model | turnState = Just { t | action = action } }
 
 
 update : Msg -> Model -> { model : Model, command : Cmd Msg }
@@ -91,7 +141,8 @@ update msg model =
             , command = Cmd.none
             }
 
-        MoveSpaces movesLeft ->
-            { model = moveSpaces movesLeft model
+        SelectedAction sa ->
+            { model = updateTurnStateAction sa model
             , command = Cmd.none
             }
+
