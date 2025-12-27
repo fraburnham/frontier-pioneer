@@ -147,7 +147,7 @@ When a 20 is rolled all players are forced to take the Anomaly action.
   3. Asteroid Shower
      - Causes ship damage (use d6)
   4. Gravitational Distortion
-     - Destroy resources in two sectors in d4 range
+     - Destroy resources in sectors in half of d4 range rounded down min 1 (TODO: better wordy)
   5. Temporal Distortion
      - Double cost of movment on next turn
   6. Alien Signal

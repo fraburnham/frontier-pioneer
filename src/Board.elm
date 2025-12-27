@@ -4,6 +4,7 @@ import Html exposing (Html)
 import Html.Attributes as Attribute exposing (class, id, title)
 import Html.Events exposing (onClick, onMouseEnter, onMouseLeave)
 import Map exposing (map)
+import Rules exposing (..)
 import Types exposing (..)
 
 
@@ -93,8 +94,8 @@ dice model =
         style =
             dieStyle model
     in
-    Html.div [ class "flex h-[5rem] items-center text-center justify-around" ]
-        (case model.turnState of
+    Html.div [ class "flex h-[5rem] items-center text-center justify-around" ] <|
+        case model.turnState of
             Nothing ->
                 [ die (style D4) "d4" Nothing
                 , die (style D6) "d6" Nothing
@@ -112,7 +113,6 @@ dice model =
                 , die (style D12) "d12" (Just t.roll.d12)
                 , die (style D20) "d20" (Just t.roll.d20)
                 ]
-        )
 
 
 actionButtons : Model -> Html Msg
@@ -120,47 +120,92 @@ actionButtons model =
     let
         buttonStyle =
             class "flex items-center justify-center border-1 rounded size-fit p-2 w-1/4 h-full hover:font-medium hover:border-2"
-    in
-    Html.div [ class "flex justify-around items-center text-center w-full h-[3rem]" ]
-        (case model.turnState of
-            Nothing ->
-                [ Html.div
-                    [ buttonStyle
-                    , onClick RollDice
-                    ]
-                    [ Html.text "Roll" ]
+
+        rollButton =
+            [ Html.div
+                [ buttonStyle
+                , onClick RollDice
                 ]
+                [ Html.text "Roll" ]
+            ]
+    in
+    Html.div [ class "flex justify-around items-center text-center w-full h-[3rem]" ] <|
+        case model.turnState of
+            Nothing ->
+                rollButton
 
             Just t ->
-                [ Html.div
-                    [ buttonStyle
-                    , onClick (SelectedAction (Move t.roll.d4))
-                    , onMouseEnter (HoveredAction (Move t.roll.d4))
-                    , onMouseLeave UnhoveredAction
-                    ]
-                    [ Html.text "Move" ]
-                , Html.div
-                    [ buttonStyle
-                    , onClick (SelectedAction MapSector)
-                    , onMouseEnter (HoveredAction MapSector)
-                    , onMouseLeave UnhoveredAction
-                    ]
-                    [ Html.text "Map Sector" ]
-                , Html.div
-                    [ buttonStyle
-                    , onClick (SelectedAction ResourceScan)
-                    , onMouseEnter (HoveredAction ResourceScan)
-                    , onMouseLeave UnhoveredAction
-                    ]
-                    [ Html.text "Resource Scan" ]
-                ]
-        )
+                case t.action of
+                    Anomaly ->
+                        rollButton
+
+                    _ ->
+                        let
+                            moveDistance =
+                                movementDistanceModifier (activeEffects model) t.roll.d4
+                        in
+                        [ Html.div
+                            [ buttonStyle
+
+                            -- TODO: a fn that gets the right number to move (from rules) then I think I can drop the difference between the hover and click style
+                            --       by putting the right number in place at the beginning (though having the difference shows how _far_ you can move and is interesting)
+                            , onClick (SelectedAction (Move moveDistance))
+                            , onMouseEnter (HoveredAction (Move moveDistance))
+                            , onMouseLeave UnhoveredAction
+                            ]
+                            [ Html.text "Move" ]
+                        , Html.div
+                            [ buttonStyle
+                            , onClick (SelectedAction MapSector)
+                            , onMouseEnter (HoveredAction MapSector)
+                            , onMouseLeave UnhoveredAction
+                            ]
+                            [ Html.text "Map Sector" ]
+                        , Html.div
+                            [ buttonStyle
+                            , onClick (SelectedAction ResourceScan)
+                            , onMouseEnter (HoveredAction ResourceScan)
+                            , onMouseLeave UnhoveredAction
+                            ]
+                            [ Html.text "Resource Scan" ]
+                        ]
 
 
 actionHint : String -> Html Msg
 actionHint text =
-    Html.div [ class "flex italic font-medium text-center items-center justify-center h-[3rem] w-full" ]
+    Html.div [ class "flex italic font-medium text-center items-center justify-center h-[3rem] w-full wrap" ]
         [ Html.text text ]
+
+
+anomalyMessage : TurnState -> String
+anomalyMessage t =
+    case t.roll.d8 of
+        1 ->
+            "You have encountered a space rift. You must move " ++ String.fromInt t.roll.d6 ++ " spaces."
+
+        2 ->
+            "You have encountered an energy surge. Your scanning and mapping ranges will be reduced next turn."
+
+        3 ->
+            "You have encountered an asteroid shower. Your ship suffered " ++ String.fromInt t.roll.d6 ++ " damage."
+
+        4 ->
+            "You have encountered a gravitational distortion. Resources within " ++ String.fromInt (max 1 (t.roll.d4 // 2)) ++ " spaces are destroyed."
+
+        5 ->
+            "You have encountered a temporal distortion. The cost of movement will be doubled next turn."
+
+        6 ->
+            "You have encountered an alien signal. It disrupted your scanners. You will not be able to scan for resources or map sectors next turn."
+
+        7 ->
+            "You have encountered a alien vessel. They attack your ship. Your ship suffers " ++ String.fromInt t.roll.d6 ++ " damage."
+
+        8 ->
+            "You have encountered pirates. They have pillaged several nearby sectors of resources."
+
+        _ ->
+            "You have encountered an anomaly."
 
 
 actionArea : Model -> Html Msg
@@ -196,8 +241,11 @@ actionArea model =
                                 , actionHint ("Select a sector to scan for resources within " ++ String.fromInt t.roll.d10 ++ " spaces.")
                                 ]
 
-                            _ ->
-                                [ dice model
+                            Anomaly ->
+                                [ Html.div [ class "flex items-center h-[5rem]" ]
+                                    [ actionHint <| anomalyMessage t ]
+
+                                -- TODO: make this show all the details of the anomaly
                                 , actionButtons model
                                 ]
 
@@ -227,12 +275,13 @@ board model =
 
 
 -- NEXT: handle anomalies in rolls
--- NEXT: handle damage
+-- NEXT: ability to abort action somehow... (maybe trap esc and have the help hint show "Press ESC to abort")
 -- NEXT: handle collecting resources
 -- NEXT: handle upgrades
 -- NEXT: handle special movement costs
 -- NEXT: handle resource limitations (like showing X for count when the kind is nothing and not allowing resources in enemy space)
 -- NEXT: handle endgame/scoring!
+-- NEXT: handle showing active effects
 -- NEXT: handle roll history
 -- NEXT: handle rules display
 -- NEXT: don't allow selecting an option if there will be _zero_ valid moves for it

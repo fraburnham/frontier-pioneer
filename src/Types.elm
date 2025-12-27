@@ -232,6 +232,15 @@ type alias UpgradeProgress =
     }
 
 
+type Effect
+    = ScanningImpaired { failing : Bool }
+    | MovementImpaired
+    | ShipImproved
+    | ResourceDiscoveryImproved
+    | ScanningImproved
+    | MovementImproved
+
+
 type alias Model =
     { sectors : Array (Array Sector)
     , upgradeProgress : UpgradeProgress
@@ -239,6 +248,8 @@ type alias Model =
     , turnState : Maybe TurnState
     , location : Maybe Coordinates
     , hoveredAction : Maybe Action
+    , effects : List Effect
+    , temporaryEffect : Maybe Effect
     }
 
 
@@ -249,3 +260,14 @@ type Msg
     | HoveredAction Action
     | UnhoveredAction
     | SelectedAction Action
+    | PirateEncounter ( List Coordinates, List Coordinates )
+
+
+activeEffects : Model -> List Effect
+activeEffects model =
+    case model.temporaryEffect of
+        Nothing ->
+            model.effects
+
+        Just e ->
+            e :: model.effects

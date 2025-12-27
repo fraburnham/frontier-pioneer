@@ -41,6 +41,8 @@ init _ =
       , turnState = Nothing
       , location = Nothing
       , hoveredAction = Nothing
+      , effects = []
+      , temporaryEffect = Nothing
       }
     , Cmd.none
     )

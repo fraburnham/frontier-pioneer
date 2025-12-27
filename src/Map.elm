@@ -44,6 +44,9 @@ sectorStyleValidForAction model col row s =
 
         coords =
             { row = row, col = col }
+
+        effects =
+            activeEffects model
     in
     case model.location of
         Nothing ->
@@ -55,40 +58,37 @@ sectorStyleValidForAction model col row s =
                     invalidStyle
 
                 Just t ->
-                    let
-                        checkAction =
-                            \action ->
-                                case action of
-                                    Move ml ->
-                                        case validMove ml l coords of
-                                            True ->
-                                                validStyle
-
-                                            False ->
-                                                invalidStyle
-
-                                    MapSector ->
-                                        case validMapSector t.roll.d10 s l coords of
-                                            True ->
-                                                validStyle
-
-                                            False ->
-                                                invalidStyle
-
-                                    ResourceScan ->
-                                        case validResourceScan t.roll.d10 s l coords of
-                                            True ->
-                                                validStyle
-
-                                            False ->
-                                                invalidStyle
-
-                                    _ ->
-                                        invalidStyle
-                    in
                     case model.hoveredAction of
+                        -- TODO: handle deciding which validator to use differently. A lookup maybe? That way I can dispatch differently for hover and selected
+                        --       yeah. Then these calls can be valid Action model turnState location coords (or whatever)
                         Just ha ->
-                            checkAction ha
+                            case ha of
+                                Move ml ->
+                                    case validMoveHover ml l coords of
+                                        True ->
+                                            validStyle
+
+                                        False ->
+                                            invalidStyle
+
+                                MapSector ->
+                                    case validMapSector effects t.roll.d10 s l coords of
+                                        True ->
+                                            validStyle
+
+                                        False ->
+                                            invalidStyle
+
+                                ResourceScan ->
+                                    case validResourceScan effects t.roll.d10 s l coords of
+                                        True ->
+                                            validStyle
+
+                                        False ->
+                                            invalidStyle
+
+                                _ ->
+                                    invalidStyle
 
                         Nothing ->
                             case t.action of
@@ -96,7 +96,33 @@ sectorStyleValidForAction model col row s =
                                     invalidStyle
 
                                 a ->
-                                    checkAction a
+                                    case a of
+                                        Move ml ->
+                                            case validMove ml l coords of
+                                                True ->
+                                                    validStyle
+
+                                                False ->
+                                                    invalidStyle
+
+                                        MapSector ->
+                                            case validMapSector effects t.roll.d10 s l coords of
+                                                True ->
+                                                    validStyle
+
+                                                False ->
+                                                    invalidStyle
+
+                                        ResourceScan ->
+                                            case validResourceScan effects t.roll.d10 s l coords of
+                                                True ->
+                                                    validStyle
+
+                                                False ->
+                                                    invalidStyle
+
+                                        _ ->
+                                            invalidStyle
 
 
 sectorStyle : Model -> Int -> Int -> Sector -> String
