@@ -1,6 +1,8 @@
 module Rules exposing (..)
 
 import Types exposing (..)
+import Types.Resource exposing (..)
+import Types.Sector exposing (..)
 
 
 canScan : List Effect -> Bool

@@ -1,11 +1,11 @@
-module Board exposing (board)
+module View.Board exposing (board)
 
 import Html exposing (Html)
 import Html.Attributes as Attribute exposing (class, id, title)
 import Html.Events exposing (onClick, onMouseEnter, onMouseLeave)
-import Map exposing (map)
 import Rules exposing (..)
 import Types exposing (..)
+import View.Map exposing (map)
 
 
 header : Html Msg
@@ -258,30 +258,31 @@ actionArea model =
 
 board : Model -> Html Msg
 board model =
-    Html.div
-        [ id "board"
-        , class "flex flex-col size-fit p-4"
+    Html.div [ class "font-['Exo_2'] flex justify-center items-center" ]
+        [ Html.div
+            [ id "board"
+            , class "flex flex-col size-fit p-4"
+            ]
+            [ header
+            , actionArea model
+            , map model
+            , Html.div [] [ Html.text "Upgrades" ]
+            , Html.div [] [ Html.text "Damage" ]
+            , Html.div [] [ Html.text "Score" ]
+            , Html.div [] [ Html.text "Roll history" ]
+            , Html.div [] [ Html.text "Rules" ]
+            ]
         ]
-        [ header
-        , actionArea model
-        , map model
-        , Html.div [] [ Html.text "Upgrades" ]
-        , Html.div [] [ Html.text "Damage" ]
-        , Html.div [] [ Html.text "Score" ]
-        , Html.div [] [ Html.text "Roll history" ]
-        , Html.div [] [ Html.text "Rules" ]
-        ]
 
 
 
--- NEXT: handle anomalies in rolls
--- NEXT: ability to abort action somehow... (maybe trap esc and have the help hint show "Press ESC to abort")
 -- NEXT: handle collecting resources
 -- NEXT: handle upgrades
--- NEXT: handle special movement costs
--- NEXT: handle resource limitations (like showing X for count when the kind is nothing and not allowing resources in enemy space)
--- NEXT: handle endgame/scoring!
+-- NEXT: handle special movement costs (nebula, enemy space)
+-- NEXT: handle resource limitations (no resources in enemy space; X for count when kind is None)
+-- NEXT: handle endgame (turn counting)/scoring!
 -- NEXT: handle showing active effects
+-- NEXT: ability to abort action somehow... (maybe trap esc and have the help hint show "Press ESC to abort")
 -- NEXT: handle roll history
 -- NEXT: handle rules display
 -- NEXT: don't allow selecting an option if there will be _zero_ valid moves for it

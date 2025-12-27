@@ -6,6 +6,10 @@ import Random.Extra exposing (andMap)
 import Random.List
 import Rules exposing (..)
 import Types exposing (..)
+import Types.Resource exposing (..)
+import Types.Sector exposing (..)
+import Update.Resource exposing (..)
+import Update.Sector exposing (..)
 
 
 rollDice : Cmd Msg
@@ -33,72 +37,6 @@ rollDice =
 removeHoveredAction : Model -> Model
 removeHoveredAction model =
     { model | hoveredAction = Nothing }
-
-
-getSector : Model -> Coordinates -> Maybe Sector
-getSector model coords =
-    case Array.get coords.row model.sectors of
-        Nothing ->
-            Nothing
-
-        Just row ->
-            Array.get coords.col row
-
-
-mapSector : TurnState -> Sector -> Sector
-mapSector t sector =
-    case sector of
-        -- This should be unreachable due to validMapSector
-        Mapped s ->
-            Mapped s
-
-        Unmapped ->
-            Mapped
-                { kind = intToSectorKind t.roll.d6
-                , resource = Undiscovered
-                }
-
-
-resourceScan : TurnState -> Sector -> Sector
-resourceScan t sector =
-    case sector of
-        -- This should be unreachable due to validResourceScan
-        Unmapped ->
-            Unmapped
-
-        Mapped s ->
-            case s.resource of
-                -- This should be unreachable due to validResourceScan
-                Discovered _ ->
-                    Mapped s
-
-                Undiscovered ->
-                    Mapped
-                        { s
-                            | resource =
-                                Discovered
-                                    { kind = intToResourceKind t.roll.d8
-                                    , count = t.roll.d12
-                                    }
-                        }
-
-
-arrayUpdate : Int -> (a -> a) -> Array a -> Array a
-arrayUpdate i updateFn arr =
-    case Array.get i arr of
-        Nothing ->
-            arr
-
-        Just el ->
-            Array.set i (updateFn el) arr
-
-
-updateSector : (Sector -> Sector) -> Array (Array Sector) -> Coordinates -> Array (Array Sector)
-updateSector updateFn arr coords =
-    arrayUpdate
-        coords.row
-        (\row -> arrayUpdate coords.col updateFn row)
-        arr
 
 
 sectorClicked : Model -> Coordinates -> Model
@@ -248,28 +186,17 @@ handleAnomaly model =
                                             max 1 <| t.roll.d4 // 2
 
                                         destroyResources =
-                                            \row col sector ->
-                                                case sector of
-                                                    Unmapped ->
-                                                        sector
+                                            \row col r ->
+                                                case gameDistance l { row = row, col = col } <= range of
+                                                    False ->
+                                                        r
 
-                                                    Mapped s ->
-                                                        Mapped <|
-                                                            case gameDistance l { row = row, col = col } <= range of
-                                                                False ->
-                                                                    s
-
-                                                                True ->
-                                                                    case s.resource of
-                                                                        Undiscovered ->
-                                                                            s
-
-                                                                        Discovered r ->
-                                                                            { s | resource = Discovered { r | count = 0 } }
+                                                    True ->
+                                                        { r | count = 0 }
                                     in
                                     ( { model
                                         | sectors =
-                                            Array.indexedMap (\rowNum row -> Array.indexedMap (destroyResources rowNum) row) model.sectors
+                                            resourceMap destroyResources model.sectors
                                       }
                                     , Cmd.none
                                     )
@@ -374,33 +301,17 @@ update msg model =
             , Cmd.none
             )
 
-        -- TODO: make a function sectorMap that takes the sectors and handles when to apply a fn that is (row -> col -> sector -> sector)
         PirateEncounter ( impactedCoordinates, _ ) ->
             ( { model
                 | sectors =
-                    Array.indexedMap
-                        (\rowNum row ->
-                            Array.indexedMap
-                                (\colNum sector ->
-                                    case List.member { row = rowNum, col = colNum } impactedCoordinates of
-                                        False ->
-                                            sector
+                    resourceMap
+                        (\row col r ->
+                            case List.member { row = row, col = col } impactedCoordinates of
+                                False ->
+                                    r
 
-                                        True ->
-                                            case sector of
-                                                Unmapped ->
-                                                    sector
-
-                                                Mapped s ->
-                                                    Mapped <|
-                                                        case s.resource of
-                                                            Undiscovered ->
-                                                                s
-
-                                                            Discovered r ->
-                                                                { s | resource = Discovered { r | count = 0 } }
-                                )
-                                row
+                                True ->
+                                    { r | count = 0 }
                         )
                         model.sectors
               }

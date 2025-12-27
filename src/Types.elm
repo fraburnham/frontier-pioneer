@@ -1,194 +1,14 @@
 module Types exposing (..)
 
 import Array exposing (Array)
+import Types.Resource exposing (..)
+import Types.Sector exposing (..)
 
 
 type alias Coordinates =
     { row : Int
     , col : Int
     }
-
-
-type ResourceKind
-    = None -- TODO: change this to NoResource
-    | Water
-    | RawMetals
-    | MetalAlloys
-    | Silicon
-    | DarkMatter
-    | ExoticMinerals
-
-
-resourceKindToName : ResourceKind -> String
-resourceKindToName rk =
-    case rk of
-        None ->
-            "Nothing"
-
-        Water ->
-            "Water"
-
-        RawMetals ->
-            "Raw Metals"
-
-        MetalAlloys ->
-            "Metal Alloys"
-
-        Silicon ->
-            "Silicon"
-
-        DarkMatter ->
-            "Dark Matter"
-
-        ExoticMinerals ->
-            "Exotic Minerals"
-
-
-resourceKindToSymbol : ResourceKind -> String
-resourceKindToSymbol rk =
-    case rk of
-        None ->
-            "X"
-
-        Water ->
-            "W"
-
-        RawMetals ->
-            "R"
-
-        MetalAlloys ->
-            "M"
-
-        Silicon ->
-            "S"
-
-        DarkMatter ->
-            "D"
-
-        ExoticMinerals ->
-            "E"
-
-
-intToResourceKind : Int -> ResourceKind
-intToResourceKind i =
-    case i of
-        2 ->
-            Water
-
-        3 ->
-            RawMetals
-
-        4 ->
-            MetalAlloys
-
-        5 ->
-            Silicon
-
-        6 ->
-            DarkMatter
-
-        7 ->
-            ExoticMinerals
-
-        _ ->
-            None
-
-
-type alias ResourceData =
-    { kind : ResourceKind
-    , count : Int
-    }
-
-
-type Resource
-    = Discovered ResourceData
-    | Undiscovered
-
-
-type SectorKind
-    = DeepSpace
-    | ColonizedSystem
-    | UncolonizedSystem
-    | Nebula
-    | EnemySpace
-
-
-sectorKindToName : SectorKind -> String
-sectorKindToName sk =
-    case sk of
-        DeepSpace ->
-            "Deep Space"
-
-        ColonizedSystem ->
-            "Colonized Star System"
-
-        UncolonizedSystem ->
-            "Uncolonized Star System"
-
-        Nebula ->
-            "Nebula"
-
-        EnemySpace ->
-            "Enemy Space"
-
-
-sectorKindToSymbol : SectorKind -> String
-sectorKindToSymbol sk =
-    case sk of
-        DeepSpace ->
-            "D"
-
-        ColonizedSystem ->
-            "C"
-
-        UncolonizedSystem ->
-            "U"
-
-        Nebula ->
-            "N"
-
-        EnemySpace ->
-            "E"
-
-
-intToSectorKind : Int -> SectorKind
-intToSectorKind i =
-    case i of
-        2 ->
-            ColonizedSystem
-
-        3 ->
-            UncolonizedSystem
-
-        4 ->
-            Nebula
-
-        5 ->
-            EnemySpace
-
-        _ ->
-            DeepSpace
-
-
-type alias SectorData =
-    { kind : SectorKind
-    , resource : Resource
-    }
-
-
-type Sector
-    = Mapped SectorData
-    | Unmapped
-
-
-maxSectorRow : Int
-maxSectorRow =
-    12
-
-
-maxSectorCol : Int
-maxSectorCol =
-    12
 
 
 type alias RollResult =
@@ -211,7 +31,7 @@ type Die
 
 
 type Action
-    = Move Int -- Should the action get passed the data or should it be pulled from the model?
+    = Move Int
     | MapSector
     | ResourceScan
     | Anomaly

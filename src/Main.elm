@@ -5,16 +5,17 @@ import Browser
 import Html exposing (Html)
 import Html.Attributes as Attribute exposing (class)
 import Html.Events as Event
-import Page exposing (page)
 import Types exposing (..)
+import Types.Sector exposing (..)
 import Update exposing (update)
+import View.Board exposing (board)
 
 
 main =
     Browser.element
         { init = init
         , update = update
-        , view = page
+        , view = board
         , subscriptions = subscriptions
         }
 
