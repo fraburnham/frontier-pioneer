@@ -1,5 +1,7 @@
 module Types exposing (..)
 
+import Array exposing (Array)
+
 
 type alias Coordinates =
     { row : Int
@@ -19,38 +21,77 @@ type ResourceKind
 
 resourceKindToName : ResourceKind -> String
 resourceKindToName rk =
-    when rk is
-        None -> "Nothing"
-        Water -> "Water"
-        RawMetals -> "Raw Metals"
-        MetalAlloys -> "Metal Alloys"
-        Silicon -> "Silicon"
-        DarkMatter -> "Dark Matter"
-        ExoticMinerals -> "Exotic Minerals"
+    case rk of
+        None ->
+            "Nothing"
+
+        Water ->
+            "Water"
+
+        RawMetals ->
+            "Raw Metals"
+
+        MetalAlloys ->
+            "Metal Alloys"
+
+        Silicon ->
+            "Silicon"
+
+        DarkMatter ->
+            "Dark Matter"
+
+        ExoticMinerals ->
+            "Exotic Minerals"
 
 
 resourceKindToSymbol : ResourceKind -> String
 resourceKindToSymbol rk =
-    when rk is
-        None -> "X"
-        Water -> "W"
-        RawMetals -> "R"
-        MetalAlloys -> "M"
-        Silicon -> "S"
-        DarkMatter -> "D"
-        ExoticMinerals -> "E"
+    case rk of
+        None ->
+            "X"
+
+        Water ->
+            "W"
+
+        RawMetals ->
+            "R"
+
+        MetalAlloys ->
+            "M"
+
+        Silicon ->
+            "S"
+
+        DarkMatter ->
+            "D"
+
+        ExoticMinerals ->
+            "E"
 
 
 intToResourceKind : Int -> ResourceKind
 intToResourceKind i =
-    when i is
-        2 -> Water
-        3 -> RawMetals
-        4 -> MetalAlloys
-        5 -> Silicon
-        6 -> DarkMatter
-        7 -> ExoticMinerals
-        _ -> None
+    case i of
+        2 ->
+            Water
+
+        3 ->
+            RawMetals
+
+        4 ->
+            MetalAlloys
+
+        5 ->
+            Silicon
+
+        6 ->
+            DarkMatter
+
+        7 ->
+            ExoticMinerals
+
+        _ ->
+            None
 
 
 type alias ResourceData =
@@ -74,32 +115,59 @@ type SectorKind
 
 sectorKindToName : SectorKind -> String
 sectorKindToName sk =
-    when sk is
-        DeepSpace -> "Deep Space"
-        ColonizedSystem -> "Colonized Star System"
-        UncolonizedSystem -> "Uncolonized Star System"
-        Nebula -> "Nebula"
-        EnemySpace -> "Enemy Space"
+    case sk of
+        DeepSpace ->
+            "Deep Space"
+
+        ColonizedSystem ->
+            "Colonized Star System"
+
+        UncolonizedSystem ->
+            "Uncolonized Star System"
+
+        Nebula ->
+            "Nebula"
+
+        EnemySpace ->
+            "Enemy Space"
 
 
 sectorKindToSymbol : SectorKind -> String
 sectorKindToSymbol sk =
-    when sk is
-        DeepSpace -> "D"
-        ColonizedSystem -> "C"
-        UncolonizedSystem -> "U"
-        Nebula -> "N"
-        EnemySpace -> "E"
+    case sk of
+        DeepSpace ->
+            "D"
+
+        ColonizedSystem ->
+            "C"
+
+        UncolonizedSystem ->
+            "U"
+
+        Nebula ->
+            "N"
+
+        EnemySpace ->
+            "E"
 
 
 intToSectorKind : Int -> SectorKind
 intToSectorKind i =
-    when i is
-        2 -> ColonizedSystem
-        3 -> UncolonizedSystem
-        4 -> Nebula
-        5 -> EnemySpace
-        _ -> DeepSpace
+    case i of
+        2 ->
+            ColonizedSystem
+
+        3 ->
+            UncolonizedSystem
+
+        4 ->
+            Nebula
+
+        5 ->
+            EnemySpace
+
+        _ ->
+            DeepSpace
 
 
 type alias SectorData =
@@ -114,14 +182,16 @@ type Sector
 
 
 maxSectorRow : Int
-maxSectorRow = 12
+maxSectorRow =
+    12
 
 
 maxSectorCol : Int
-maxSectorCol = 12
+maxSectorCol =
+    12
 
 
-type alias RollResult = 
+type alias RollResult =
     { d4 : Int
     , d6 : Int
     , d8 : Int
@@ -179,4 +249,3 @@ type Msg
     | HoveredAction Action
     | UnhoveredAction
     | SelectedAction Action
-

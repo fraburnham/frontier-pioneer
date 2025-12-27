@@ -1,12 +1,12 @@
 module Main exposing (main)
 
+import Array exposing (Array)
 import Browser
 import Html exposing (Html)
 import Html.Attributes as Attribute exposing (class)
 import Html.Events as Event
-
-import Types exposing (..)
 import Page exposing (page)
+import Types exposing (..)
 import Update exposing (update)
 
 
@@ -19,12 +19,13 @@ main =
         }
 
 
-initialSectors : Array(Array(Sector))
-initialSectors = (Array.repeat maxSectorCol (Array.repeat maxSectorRow Unmapped))
+initialSectors : Array (Array Sector)
+initialSectors =
+    Array.repeat maxSectorCol (Array.repeat maxSectorRow Unmapped)
 
 
 initialUpgrades : UpgradeProgress
-initialUpgrades = 
+initialUpgrades =
     { blinkDrive = 0
     , terraformingTechnology = 0
     , shipImprovements = 0
@@ -32,17 +33,17 @@ initialUpgrades =
     }
 
 
-init : {} -> { model : Model, command : Cmd Msg }
+init : {} -> ( Model, Cmd Msg )
 init _ =
-    { model = { sectors = initialSectors
-              , upgradeProgress = initialUpgrades
-              , damage = 0
-              , turnState = Nothing
-              , location = Nothing
-              , hoveredAction = Nothing
-              }
-    , command = Cmd.none
-    }
+    ( { sectors = initialSectors
+      , upgradeProgress = initialUpgrades
+      , damage = 0
+      , turnState = Nothing
+      , location = Nothing
+      , hoveredAction = Nothing
+      }
+    , Cmd.none
+    )
 
 
 subscriptions : Model -> Sub Msg

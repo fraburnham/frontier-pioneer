@@ -9,7 +9,7 @@ def build-static [] {
 
 def build-app [] {
   print "Building app"
-  gren make Main --output=dist/app.js --sourcemaps
+  elm make src/Main.elm --output=dist/app.js --debug
 }
 
 def build-css [] {
@@ -35,8 +35,8 @@ export def main [] {
   build-dev
   
   job spawn {
-    watch src/ --glob=**/*.gren { ||
-      print "Gren file changed"
+    watch src/ --glob=**/*.elm { ||
+      print "Elm file changed"
       try {
         build-dev
       } catch { |e|
