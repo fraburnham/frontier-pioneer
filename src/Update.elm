@@ -6,6 +6,8 @@ import Rules exposing (..)
 import Types exposing (..)
 
 
+-- TODO: express this with a helper fn so it isn't so terrible. I'm thinking return a list of generated values (based on some input generators)
+--       and then the caller can "finalize" over them to get them in a record or whatever.
 rollDice : Cmd Msg
 rollDice =
     Random.int 1 4
@@ -97,12 +99,16 @@ resourceScan t sector =
 
 arrayUpdate : Int -> (a -> a) -> Array a -> Array a
 arrayUpdate i updateFn arr =
-    arr
+    case Array.get i arr of
+        Nothing ->
+            arr
+
+        Just el ->
+            Array.set i (updateFn el) arr
 
 
 updateSector : (Sector -> Sector) -> Array (Array Sector) -> Coordinates -> Array (Array Sector)
 updateSector updateFn arr coords =
-    -- TODO: Make the replacement fn WORK
     arrayUpdate
         coords.row
         (\row -> arrayUpdate coords.col updateFn row)
