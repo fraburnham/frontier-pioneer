@@ -84,7 +84,7 @@ die style kind val =
                     Just v ->
                         String.fromInt v
                 )
-            ]
+             ]
         ]
 
 
@@ -265,12 +265,17 @@ board model =
             ]
             [ header
             , actionArea model
-            , map model
-            , Html.div [] [ Html.text "Upgrades" ]
-            , Html.div [] [ Html.text "Damage" ]
-            , Html.div [] [ Html.text "Score" ]
-            , Html.div [] [ Html.text "Roll history" ]
-            , Html.div [] [ Html.text "Rules" ]
+            , Html.div [ class "flex flex-col w-full items-center" ]
+                [ map model
+                -- TODO: this div isn't quite right. I don't want this stuff to move when the actionHint is too long
+                , Html.div [ class "flex flex-col w-full" ]
+                    [ Html.div [] [ Html.text "Upgrades" ]
+                    , Html.div [] [ Html.text "Damage" ]
+                    , Html.div [] [ Html.text "Score" ]
+                    , Html.div [] [ Html.text "Roll history" ]
+                    , Html.div [] [ Html.text "Rules" ]
+                    ]
+                ]
             ]
         ]
 
