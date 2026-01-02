@@ -6,8 +6,8 @@ import Types exposing (..)
 
 
 canScan : List Effect -> Bool
-canScan activeEffects =
-    not <| List.member (ScanningImpaired { failing = True }) activeEffects
+canScan effects =
+    not <| List.member (ScanningImpaired { failing = True }) effects
 
 
 gameDistance : Coordinates -> Coordinates -> Int
@@ -17,8 +17,8 @@ gameDistance a b =
 
 
 movementImpaired : List Effect -> (Int -> Int)
-movementImpaired activeEffects =
-    case List.member MovementImpaired activeEffects of
+movementImpaired effects =
+    case List.member MovementImpaired effects of
         False ->
             identity
 
@@ -27,8 +27,8 @@ movementImpaired activeEffects =
 
 
 movementImproved : List Effect -> (Int -> Int)
-movementImproved activeEffects =
-    case List.member MovementImproved activeEffects of
+movementImproved effects =
+    case List.member MovementImproved effects of
         False ->
             identity
 
@@ -37,20 +37,20 @@ movementImproved activeEffects =
 
 
 movementDistanceModifier : List Effect -> Int -> Int
-movementDistanceModifier activeEffects distance =
+movementDistanceModifier effects distance =
     -- TODO: rename, this is modifiedMovementDistance really
-    movementImproved activeEffects
-        >> movementImpaired activeEffects
+    movementImproved effects
+        >> movementImpaired effects
     <|
         distance
 
 
 scanningDistanceModifier : List Effect -> Int -> Int
-scanningDistanceModifier activeEffects distance =
+scanningDistanceModifier effects distance =
     let
         getDistanceModifierFn =
             \eff ->
-                case List.member eff activeEffects of
+                case List.member eff effects of
                     False ->
                         identity
 
@@ -88,14 +88,14 @@ validMoveHover movesLeft curLocation newLocation =
 
 
 validScanCommon : List Effect -> Int -> Sector -> Coordinates -> Coordinates -> Bool
-validScanCommon activeEffects range sector curLocation sectorLocation =
-    canScan activeEffects
-        && ((gameDistance curLocation sectorLocation |> scanningDistanceModifier activeEffects) <= range)
+validScanCommon effects range sector curLocation sectorLocation =
+    canScan effects
+        && ((gameDistance curLocation sectorLocation |> scanningDistanceModifier effects) <= range)
 
 
 validMapSector : List Effect -> Int -> Sector -> Coordinates -> Coordinates -> Bool
-validMapSector activeEffects range sector curLocation sectorLocation =
-    validScanCommon activeEffects range sector curLocation sectorLocation
+validMapSector effects range sector curLocation sectorLocation =
+    validScanCommon effects range sector curLocation sectorLocation
         && (case sector of
                 Mapped _ ->
                     False
@@ -105,9 +105,10 @@ validMapSector activeEffects range sector curLocation sectorLocation =
            )
 
 
-validResourceScan : List Effect -> Int -> Sector -> Coordinates -> Coordinates -> Bool
-validResourceScan activeEffects range sector curLocation sectorLocation =
-    validScanCommon activeEffects range sector curLocation sectorLocation
+validResourceScan : TurnState -> List Effect -> Int -> Sector -> Coordinates -> Coordinates -> Bool
+validResourceScan turnState effects range sector curLocation sectorLocation =
+    -- TODO: Break the fns out and use an every of some kind
+    validScanCommon effects range sector curLocation sectorLocation
         && (case sector of
                 Unmapped ->
                     False
@@ -120,5 +121,33 @@ validResourceScan activeEffects range sector curLocation sectorLocation =
 
                                 Undiscovered ->
                                     True
+                                        && (case Debug.log "Would get" <| intToResourceKind turnState.roll.d8 of
+                                                Water ->
+                                                    case s.kind of
+                                                        DeepSpace ->
+                                                            False
+
+                                                        _ ->
+                                                            True
+
+                                                DarkMatter ->
+                                                    case s.kind of
+                                                        ColonizedSystem ->
+                                                            False
+
+                                                        _ ->
+                                                            True
+
+                                                ExoticMinerals ->
+                                                    case s.kind of
+                                                        ColonizedSystem ->
+                                                            False
+
+                                                        _ ->
+                                                            True
+
+                                                _ ->
+                                                    True
+                                           )
                            )
            )

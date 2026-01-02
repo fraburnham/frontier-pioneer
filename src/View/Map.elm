@@ -83,7 +83,7 @@ sectorStyleValidForAction model col row s =
                                             invalidStyle
 
                                 ResourceScan ->
-                                    case validResourceScan effects t.roll.d10 s l coords of
+                                    case validResourceScan t effects t.roll.d10 s l coords of
                                         True ->
                                             validStyle
 
@@ -117,7 +117,7 @@ sectorStyleValidForAction model col row s =
                                                     invalidStyle
 
                                         ResourceScan ->
-                                            case validResourceScan effects t.roll.d10 s l coords of
+                                            case validResourceScan t effects t.roll.d10 s l coords of
                                                 True ->
                                                     validStyle
 

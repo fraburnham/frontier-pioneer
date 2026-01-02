@@ -18,6 +18,11 @@ numResourcesToUpgrade =
     20
 
 
+maxTurns : Int
+maxTurns =
+    30
+
+
 type SectorKind
     = DeepSpace
     | ColonizedSystem
@@ -130,6 +135,7 @@ type alias Model =
     , hoveredAction : Maybe Action
     , effects : List Effect
     , temporaryEffect : Maybe Effect
+    , turnNumber : Int
     }
 
 

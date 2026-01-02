@@ -156,7 +156,7 @@ sectorClicked model coords =
                                     model
 
                                 Just s ->
-                                    case validResourceScan effects t.roll.d10 s l coords of
+                                    case validResourceScan t effects t.roll.d10 s l coords of
                                         False ->
                                             model
 
@@ -361,6 +361,11 @@ setUpgradeEffects upgrade model =
                     { model | effects = eff :: model.effects }
 
 
+updateTurnCounter : Model -> Model
+updateTurnCounter model =
+    { model | turnNumber = model.turnNumber + 1 }
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -371,14 +376,20 @@ update msg model =
 
         RollDice ->
             -- TODO: rename RollDice to StartTurn
-            ( removeHoveredAction model
-                |> clearTemporaryEffect
-                |> setUpgradeEffects BlinkDrive
-                |> setUpgradeEffects TerraformingTech
-                |> setUpgradeEffects ShipRepairs
-                |> setUpgradeEffects ScannerTech
-            , rollDice
-            )
+            case model.turnNumber > maxTurns of
+                True ->
+                    ( { model | turnState = Nothing }, Cmd.none )
+
+                False ->
+                    ( removeHoveredAction model
+                        |> clearTemporaryEffect
+                        |> setUpgradeEffects BlinkDrive
+                        |> setUpgradeEffects TerraformingTech
+                        |> setUpgradeEffects ShipRepairs
+                        |> setUpgradeEffects ScannerTech
+                        |> updateTurnCounter
+                    , rollDice
+                    )
 
         Rolled result ->
             handleAnomaly

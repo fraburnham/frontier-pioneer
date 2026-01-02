@@ -1,5 +1,6 @@
 module View.Board exposing (board)
 
+import Array
 import Data.Damage exposing (..)
 import Data.Effect exposing (..)
 import Data.Sector exposing (..)
@@ -303,6 +304,27 @@ activeAction model t =
             ]
 
 
+calcScore : Model -> Int
+calcScore model =
+    model.upgradeProgress.blinkDrive
+        + model.upgradeProgress.terraformingTech
+        + model.upgradeProgress.shipRepairs
+        + model.upgradeProgress.scannerTech
+        + (List.length model.effects * 10)
+        + (sectorMap
+            (\coords sector ->
+                case sector of
+                    Unmapped ->
+                        0
+
+                    Mapped _ ->
+                        1
+            )
+            model.sectors
+            |> Array.foldl (\row total -> total + Array.foldl (+) 0 row) 0
+          )
+
+
 actionArea : Model -> Html Msg
 actionArea model =
     let
@@ -312,9 +334,18 @@ actionArea model =
                     activeAction model t
 
                 Nothing ->
-                    [ dice model
-                    , actionButtons model
-                    ]
+                    case model.turnNumber > maxTurns of
+                        True ->
+                            [ Html.div [ class "flex flex-col items-center justify-center" ]
+                                [ actionHint "Game Over!"
+                                , actionHint <| "Score: " ++ String.fromInt (calcScore model)
+                                ]
+                            ]
+
+                        False ->
+                            [ dice model
+                            , actionButtons model
+                            ]
     in
     Html.div [ class "flex flex-col h-[9rem] justify-center" ] <|
         case model.location of
@@ -435,19 +466,18 @@ board model =
 
 
 
--- NEXT: handle resource limitations (no resources in enemy space; X for count when kind is None)
--- NEXT: handle endgame (turn counting)/scoring!
--- PLAYABLE!
--- NEXT: don't allow sector clicking to advance the move if there are resources to collect
--- NEXT: action buttons are only clickable if there is at least one valid sector
+-- PLAYABLE! (sorta)
+-- NEXT: handle rules display
+-- FIX: don't allow sector clicking to advance the move if there are resources to collect
+-- FIX: action buttons are only clickable if there is at least one valid sector (don't allow selecting an option if there will be _zero_ valid moves for it)
+-- FIX: when an anomaly happens as the last turn the player gets an _extra_ turn
 -- NEXT: some reactive stuff like showing the board and info sections side by side for wide enough viewports
 -- NEXT: tests (for the update logic at least, and ideally for the data handling stuff, board is the only skippable part and only if it is _very_ complex)
 -- NEXT: refactor. There is lots of sprawl. Can any of it be reduced?
 -- NEXT: handle showing active effects
 -- NEXT: ability to abort action somehow... (maybe trap esc and have the help hint show "Press ESC to abort")
 -- NEXT: handle roll history
--- NEXT: handle rules display
--- NEXT: don't allow selecting an option if there will be _zero_ valid moves for it
 -- NEXT: put the "would be state" in the sector but blurred when there is an action selected or hovered
 -- NEXT: when hovering over resource buttons change the action hint to be the benefit of each upgrade
 -- NEXT: handle multiplayer by pre-generating rolls and allowing them to be exported to a file
+

@@ -6,8 +6,8 @@ import Data.Sector exposing (..)
 import Types exposing (..)
 
 
-resourceDiscoveryImproved : List Effect -> TurnState -> Int
-resourceDiscoveryImproved activeEffects =
+resourceDiscoveryCount : List Effect -> TurnState -> Int
+resourceDiscoveryCount activeEffects =
     case List.member ResourceDiscoveryImproved activeEffects of
         False ->
             \t -> t.roll.d12
@@ -30,7 +30,7 @@ resourceScan : List Effect -> TurnState -> Sector -> Sector
 resourceScan activeEffects t sector =
     let
         count =
-            (shipRepairs activeEffects << resourceDiscoveryImproved activeEffects) t
+            (shipRepairs activeEffects << resourceDiscoveryCount activeEffects) t
     in
     case sector of
         -- This should be unreachable due to validResourceScan
