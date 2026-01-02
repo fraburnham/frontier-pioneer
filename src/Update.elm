@@ -42,6 +42,55 @@ removeHoveredAction model =
     { model | hoveredAction = Nothing }
 
 
+consumeMovementPoints : Int -> Maybe SectorData -> Int
+consumeMovementPoints movesLeft sector =
+    let
+        default =
+            movesLeft - 1
+    in
+    case sector of
+        Nothing ->
+            default
+
+        Just s ->
+            case s.kind of
+                Nebula ->
+                    movesLeft - 2
+
+                _ ->
+                    default
+
+
+scanningImproved : TurnState -> List Effect -> Coordinates -> Array (Array Sector) -> Array (Array Sector)
+scanningImproved turnState effects coords sectors =
+    case List.member ScanningImproved effects of
+        False ->
+            sectors
+
+        True ->
+            updateSector (mapSector turnState >> resourceScan effects turnState) sectors coords
+
+
+enemySector : Maybe Sector -> Int -> Int
+enemySector maybeSector damage =
+    case maybeSector of
+        Nothing ->
+            damage
+
+        Just sector ->
+            case sector of
+                Unmapped ->
+                    damage
+
+                Mapped s ->
+                    case s.kind of
+                        EnemySpace ->
+                            damage + 1
+
+                        _ ->
+                            damage
+
+
 sectorClicked : Model -> Coordinates -> Model
 sectorClicked model coords =
     let
@@ -63,18 +112,23 @@ sectorClicked model coords =
                             model
 
                         Move movesLeft ->
+                            -- coords is the new/clicked location, if it is enemy space then damage is suffered
                             case validMove movesLeft l coords of
                                 True ->
                                     { model
                                         | location = Just coords
-                                        , sectors = updateSector (mapSector t >> resourceScan effects t) model.sectors coords
+                                        , sectors = scanningImproved t effects coords model.sectors
+                                        , damage = enemySector (getSector model coords) model.damage
                                         , turnState =
                                             case movesLeft of
+                                                0 ->
+                                                    Nothing
+
                                                 1 ->
                                                     Nothing
 
                                                 _ ->
-                                                    Just { t | action = Move (movesLeft - 1) }
+                                                    Just { t | action = Move <| consumeMovementPoints movesLeft <| getCurrentSector model }
                                     }
 
                                 False ->
@@ -128,7 +182,7 @@ updateTurnStateAction action model =
 
 handleDamage : Model -> TurnState -> Model
 handleDamage model t =
-    { model | damage = model.damage + (damageAmount model t) }
+    { model | damage = model.damage + damageAmount model t }
 
 
 setTemporaryEffect : Model -> Effect -> Model

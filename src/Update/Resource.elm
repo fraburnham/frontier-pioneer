@@ -25,7 +25,7 @@ shipRepairs activeEffects =
         True ->
             \c -> c + 2
 
-        
+
 resourceScan : List Effect -> TurnState -> Sector -> Sector
 resourceScan activeEffects t sector =
     let

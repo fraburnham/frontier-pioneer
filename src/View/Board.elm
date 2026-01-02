@@ -435,7 +435,6 @@ board model =
 
 
 
--- NEXT: handle special movement costs (nebula, enemy space)
 -- NEXT: handle resource limitations (no resources in enemy space; X for count when kind is None)
 -- NEXT: handle endgame (turn counting)/scoring!
 -- PLAYABLE!

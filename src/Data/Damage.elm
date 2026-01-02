@@ -3,11 +3,17 @@ module Data.Damage exposing (..)
 import Types exposing (..)
 
 
-damageAmount : Model -> TurnState -> Int
-damageAmount model turnState =
+shipImproved : Model -> Int -> Int
+shipImproved model =
     case List.member ShipImproved model.effects of
         False ->
-            turnState.roll.d6
+            identity
 
         True ->
-            turnState.roll.d6 - 1
+            \d -> d - 1
+
+
+damageAmount : Model -> TurnState -> Int
+damageAmount model turnState =
+    -- This isn't gonna compose w/ the empty sector damage. Write the fn then think about it
+    shipImproved model turnState.roll.d6
