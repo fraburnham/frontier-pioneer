@@ -16,24 +16,65 @@ gameDistance a b =
         + abs (a.col - b.col)
 
 
+movementImpaired : List Effect -> (Int -> Int)
+movementImpaired activeEffects =
+    case List.member MovementImpaired activeEffects of
+        False ->
+            identity
+
+        True ->
+            \d -> d // 2
+
+
+movementImproved : List Effect -> (Int -> Int)
+movementImproved activeEffects =
+    case List.member MovementImproved activeEffects of
+        False ->
+            identity
+
+        True ->
+            \d -> d * 2
+
+
 movementDistanceModifier : List Effect -> Int -> Int
 movementDistanceModifier activeEffects distance =
-    case List.member MovementImpaired activeEffects of
-        True ->
-            distance // 2
-
-        False ->
-            distance
+    -- TODO: rename, this is modifiedMovementDistance really
+    movementImproved activeEffects
+        >> movementImpaired activeEffects
+    <|
+        distance
 
 
 scanningDistanceModifier : List Effect -> Int -> Int
 scanningDistanceModifier activeEffects distance =
-    case List.member (ScanningImpaired { failing = False }) activeEffects of
-        True ->
-            distance + 2
+    let
+        getDistanceModifierFn =
+            \eff ->
+                case List.member eff activeEffects of
+                    False ->
+                        identity
 
-        False ->
-            distance
+                    True ->
+                        case eff of
+                            ScanningImpaired details ->
+                                case details.failing of
+                                    False ->
+                                        \d -> d + 2
+
+                                    True ->
+                                        \d -> 0
+
+                            _ ->
+                                identity
+    in
+    List.foldl
+        (\eff fn ->
+            fn >> getDistanceModifierFn eff
+        )
+        identity
+        [ ScanningImpaired { failing = False }, ScanningImpaired { failing = True } ]
+    <|
+        distance
 
 
 validMove : Int -> Coordinates -> Coordinates -> Bool

@@ -1,5 +1,6 @@
 module View.Board exposing (board)
 
+import Data.Damage exposing (..)
 import Data.Effect exposing (..)
 import Data.Sector exposing (..)
 import Data.Upgrade exposing (..)
@@ -243,8 +244,8 @@ actionHint text =
         [ Html.text text ]
 
 
-anomalyMessage : TurnState -> String
-anomalyMessage t =
+anomalyMessage : Model -> TurnState -> String
+anomalyMessage model t =
     case t.roll.d8 of
         1 ->
             "You have encountered a space rift. You must move " ++ String.fromInt t.roll.d6 ++ " spaces."
@@ -253,7 +254,7 @@ anomalyMessage t =
             "You have encountered an energy surge. Your scanning and mapping ranges will be reduced next turn."
 
         3 ->
-            "You have encountered an asteroid shower. Your ship suffered " ++ String.fromInt t.roll.d6 ++ " damage."
+            "You have encountered an asteroid shower. Your ship suffered " ++ String.fromInt (damageAmount model t) ++ " damage."
 
         4 ->
             "You have encountered a gravitational distortion. Resources within " ++ String.fromInt (max 1 (t.roll.d4 // 2)) ++ " spaces are destroyed."
@@ -265,7 +266,7 @@ anomalyMessage t =
             "You have encountered an alien signal. It disrupted your scanners. You will not be able to scan for resources or map sectors next turn."
 
         7 ->
-            "You have encountered a alien vessel. They attack your ship. Your ship suffers " ++ String.fromInt t.roll.d6 ++ " damage."
+            "You have encountered a alien vessel. They attack your ship. Your ship suffers " ++ String.fromInt (damageAmount model t) ++ " damage."
 
         8 ->
             "You have encountered pirates. They have pillaged several nearby sectors of resources."
@@ -297,7 +298,7 @@ activeAction model t =
 
         Anomaly ->
             [ Html.div [ class "flex items-center h-[5rem]" ]
-                [ actionHint <| anomalyMessage t ]
+                [ actionHint <| anomalyMessage model t ]
             , actionButtons model
             ]
 
@@ -434,11 +435,13 @@ board model =
 
 
 
--- NEXT: handle upgrades
--- NEXT: action buttons are only clickable if there is at least one valid sector
 -- NEXT: handle special movement costs (nebula, enemy space)
 -- NEXT: handle resource limitations (no resources in enemy space; X for count when kind is None)
 -- NEXT: handle endgame (turn counting)/scoring!
+-- PLAYABLE!
+-- NEXT: don't allow sector clicking to advance the move if there are resources to collect
+-- NEXT: action buttons are only clickable if there is at least one valid sector
+-- NEXT: some reactive stuff like showing the board and info sections side by side for wide enough viewports
 -- NEXT: tests (for the update logic at least, and ideally for the data handling stuff, board is the only skippable part and only if it is _very_ complex)
 -- NEXT: refactor. There is lots of sprawl. Can any of it be reduced?
 -- NEXT: handle showing active effects
@@ -448,9 +451,4 @@ board model =
 -- NEXT: don't allow selecting an option if there will be _zero_ valid moves for it
 -- NEXT: put the "would be state" in the sector but blurred when there is an action selected or hovered
 -- NEXT: when hovering over resource buttons change the action hint to be the benefit of each upgrade
--- Tally marks!
--- 𝍩
--- 𝍪
--- 𝍫
--- 𝍬
--- 𝍸
+-- NEXT: handle multiplayer by pre-generating rolls and allowing them to be exported to a file

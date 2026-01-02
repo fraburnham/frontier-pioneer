@@ -52,7 +52,7 @@ At the beginning of the game there is no "map" defined. You can choose any arbit
     
 **** Upgrades
 
-Upgrades require 15 resources each to enable.
+Upgrades require 20 resources each to enable.
 
 TODO: describe how to get upgrades based on board setup
 TODO: decide how many resources before the upgrade is usable (maybe it should vary...)

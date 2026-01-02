@@ -1,9 +1,11 @@
 module Update exposing (update)
 
 import Array exposing (Array)
+import Data.Damage exposing (..)
 import Data.Effect exposing (..)
 import Data.Resource exposing (..)
 import Data.Sector exposing (..)
+import Data.Upgrade exposing (..)
 import Random
 import Random.Extra exposing (andMap)
 import Random.List
@@ -65,6 +67,7 @@ sectorClicked model coords =
                                 True ->
                                     { model
                                         | location = Just coords
+                                        , sectors = updateSector (mapSector t >> resourceScan effects t) model.sectors coords
                                         , turnState =
                                             case movesLeft of
                                                 1 ->
@@ -105,7 +108,7 @@ sectorClicked model coords =
 
                                         True ->
                                             { model
-                                                | sectors = updateSector (resourceScan t) model.sectors coords
+                                                | sectors = updateSector (resourceScan effects t) model.sectors coords
                                                 , turnState = Nothing
                                             }
 
@@ -125,7 +128,7 @@ updateTurnStateAction action model =
 
 handleDamage : Model -> TurnState -> Model
 handleDamage model t =
-    { model | damage = model.damage + t.roll.d6 }
+    { model | damage = model.damage + (damageAmount model t) }
 
 
 setTemporaryEffect : Model -> Effect -> Model
@@ -285,6 +288,25 @@ handleUpgradeProgress upgrade data location model =
                 { model | upgradeProgress = { totalProgress | scannerTech = model.upgradeProgress.scannerTech + data.count } }
 
 
+setUpgradeEffects : Upgrade -> Model -> Model
+setUpgradeEffects upgrade model =
+    let
+        eff =
+            upgradeToEffect upgrade
+    in
+    case upgradeProgress upgrade model >= numResourcesToUpgrade of
+        False ->
+            model
+
+        True ->
+            case List.member eff model.effects of
+                True ->
+                    model
+
+                False ->
+                    { model | effects = eff :: model.effects }
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -295,7 +317,12 @@ update msg model =
 
         RollDice ->
             -- TODO: rename RollDice to StartTurn
-            ( removeHoveredAction model |> clearTemporaryEffect
+            ( removeHoveredAction model
+                |> clearTemporaryEffect
+                |> setUpgradeEffects BlinkDrive
+                |> setUpgradeEffects TerraformingTech
+                |> setUpgradeEffects ShipRepairs
+                |> setUpgradeEffects ScannerTech
             , rollDice
             )
 

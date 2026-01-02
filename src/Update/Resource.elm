@@ -6,8 +6,32 @@ import Data.Sector exposing (..)
 import Types exposing (..)
 
 
-resourceScan : TurnState -> Sector -> Sector
-resourceScan t sector =
+resourceDiscoveryImproved : List Effect -> TurnState -> Int
+resourceDiscoveryImproved activeEffects =
+    case List.member ResourceDiscoveryImproved activeEffects of
+        False ->
+            \t -> t.roll.d12
+
+        True ->
+            \t -> max t.roll.d12 t.roll.d20
+
+
+shipRepairs : List Effect -> Int -> Int
+shipRepairs activeEffects =
+    case List.member ShipImproved activeEffects of
+        False ->
+            identity
+
+        True ->
+            \c -> c + 2
+
+        
+resourceScan : List Effect -> TurnState -> Sector -> Sector
+resourceScan activeEffects t sector =
+    let
+        count =
+            (shipRepairs activeEffects << resourceDiscoveryImproved activeEffects) t
+    in
     case sector of
         -- This should be unreachable due to validResourceScan
         Unmapped ->
@@ -25,7 +49,7 @@ resourceScan t sector =
                             | resource =
                                 Discovered
                                     { kind = intToResourceKind t.roll.d8
-                                    , count = t.roll.d12
+                                    , count = count
                                     }
                         }
 

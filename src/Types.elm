@@ -13,6 +13,11 @@ maxSectorCol =
     12
 
 
+numResourcesToUpgrade : Int
+numResourcesToUpgrade =
+    20
+
+
 type SectorKind
     = DeepSpace
     | ColonizedSystem
