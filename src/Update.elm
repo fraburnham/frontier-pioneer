@@ -1,13 +1,14 @@
 module Update exposing (update)
 
 import Array exposing (Array)
+import Data.Effect exposing (..)
+import Data.Resource exposing (..)
+import Data.Sector exposing (..)
 import Random
 import Random.Extra exposing (andMap)
 import Random.List
 import Rules exposing (..)
 import Types exposing (..)
-import Types.Resource exposing (..)
-import Types.Sector exposing (..)
 import Update.Resource exposing (..)
 import Update.Sector exposing (..)
 
@@ -256,6 +257,34 @@ handleAnomaly model =
                             ( model, Cmd.none )
 
 
+handleUpgradeProgress : Upgrade -> ResourceData -> Coordinates -> Model -> Model
+handleUpgradeProgress upgrade data location model =
+    let
+        totalProgress =
+            model.upgradeProgress
+
+        consumeResource =
+            \r -> { r | count = 0 }
+
+        resourceUpdateInModel =
+            \m ->
+                { m | sectors = resourceUpdate consumeResource location m.sectors }
+    in
+    resourceUpdateInModel <|
+        case upgrade of
+            BlinkDrive ->
+                { model | upgradeProgress = { totalProgress | blinkDrive = model.upgradeProgress.blinkDrive + data.count } }
+
+            TerraformingTech ->
+                { model | upgradeProgress = { totalProgress | terraformingTech = model.upgradeProgress.terraformingTech + data.count } }
+
+            ShipRepairs ->
+                { model | upgradeProgress = { totalProgress | shipRepairs = model.upgradeProgress.shipRepairs + data.count } }
+
+            ScannerTech ->
+                { model | upgradeProgress = { totalProgress | scannerTech = model.upgradeProgress.scannerTech + data.count } }
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -297,7 +326,7 @@ update msg model =
             )
 
         SelectedAction sa ->
-            ( Debug.log "Action model post update" <| removeHoveredAction <| updateTurnStateAction sa model
+            ( removeHoveredAction <| updateTurnStateAction sa model
             , Cmd.none
             )
 
@@ -315,5 +344,10 @@ update msg model =
                         )
                         model.sectors
               }
+            , Cmd.none
+            )
+
+        ResourceCollected { data, location, applyTo } ->
+            ( handleUpgradeProgress applyTo data location model
             , Cmd.none
             )

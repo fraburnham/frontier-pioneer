@@ -22,4 +22,12 @@
   font-display: swap;
 }
 
+/* Disable text selection so press-and-hold on mobile behaves as hover on desktop */
+.noselect {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
 @import "tailwindcss";

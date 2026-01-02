@@ -1,5 +1,8 @@
 module View.Board exposing (board)
 
+import Data.Effect exposing (..)
+import Data.Sector exposing (..)
+import Data.Upgrade exposing (..)
 import Html exposing (Html)
 import Html.Attributes as Attribute exposing (class, id, title)
 import Html.Events exposing (onClick, onMouseEnter, onMouseLeave)
@@ -10,7 +13,7 @@ import View.Map exposing (map)
 
 header : Html Msg
 header =
-    Html.div [ class "font-[Russo_One] text-4xl text-center pt-4 text-shadow-xs" ]
+    Html.div [ class "font-[Russo_One] text-4xl text-center pt-2 text-shadow-xs" ]
         [ Html.text "Frontier Pioneer" ]
 
 
@@ -84,7 +87,7 @@ die style kind val =
                     Just v ->
                         String.fromInt v
                 )
-             ]
+            ]
         ]
 
 
@@ -94,7 +97,7 @@ dice model =
         style =
             dieStyle model
     in
-    Html.div [ class "flex h-[5rem] items-center text-center justify-around" ] <|
+    Html.div [ class "flex h-[4rem] items-center text-center justify-around" ] <|
         case model.turnState of
             Nothing ->
                 [ die (style D4) "d4" Nothing
@@ -115,12 +118,14 @@ dice model =
                 ]
 
 
+buttonStyle : Html.Attribute Msg
+buttonStyle =
+    class "flex items-center justify-center border-1 rounded size-fit py-2 w-1/4 h-full hover:font-medium hover:border-2 mx-1"
+
+
 actionButtons : Model -> Html Msg
 actionButtons model =
     let
-        buttonStyle =
-            class "flex items-center justify-center border-1 rounded size-fit p-2 w-1/4 h-full hover:font-medium hover:border-2"
-
         rollButton =
             [ Html.div
                 [ buttonStyle
@@ -146,9 +151,6 @@ actionButtons model =
                         in
                         [ Html.div
                             [ buttonStyle
-
-                            -- TODO: a fn that gets the right number to move (from rules) then I think I can drop the difference between the hover and click style
-                            --       by putting the right number in place at the beginning (though having the difference shows how _far_ you can move and is interesting)
                             , onClick (SelectedAction (Move moveDistance))
                             , onMouseEnter (HoveredAction (Move moveDistance))
                             , onMouseLeave UnhoveredAction
@@ -171,9 +173,73 @@ actionButtons model =
                         ]
 
 
+collectResourceButton : Coordinates -> ResourceData -> Upgrade -> Html Msg
+collectResourceButton l r applyTo =
+    Html.div
+        [ buttonStyle
+        , onClick
+            (ResourceCollected
+                { data = r
+                , location = l
+                , applyTo = applyTo
+                }
+            )
+        ]
+        [ Html.text (upgradeToName applyTo) ]
+
+
+collectResourceButtons : Coordinates -> ResourceData -> Html Msg
+collectResourceButtons l r =
+    let
+        blinkDrive =
+            collectResourceButton l r BlinkDrive
+
+        terraformingTech =
+            collectResourceButton l r TerraformingTech
+
+        shipRepairs =
+            collectResourceButton l r ShipRepairs
+
+        scannerTech =
+            collectResourceButton l r ScannerTech
+    in
+    Html.div [ class "flex justify-around items-center text-center w-full h-[3rem]" ] <|
+        case r.kind of
+            None ->
+                []
+
+            Water ->
+                [ blinkDrive
+                , terraformingTech
+                , shipRepairs
+                , scannerTech
+                ]
+
+            RawMetals ->
+                [ terraformingTech ]
+
+            MetalAlloys ->
+                [ terraformingTech
+                , shipRepairs
+                ]
+
+            Silicon ->
+                [ shipRepairs
+                , scannerTech
+                ]
+
+            DarkMatter ->
+                [ blinkDrive ]
+
+            ExoticMinerals ->
+                [ blinkDrive
+                , scannerTech
+                ]
+
+
 actionHint : String -> Html Msg
 actionHint text =
-    Html.div [ class "flex italic font-medium text-center items-center justify-center h-[3rem] w-full wrap" ]
+    Html.div [ class "flex italic font-medium text-center items-center justify-center h-[5rem] w-full wrap" ]
         [ Html.text text ]
 
 
@@ -208,52 +274,137 @@ anomalyMessage t =
             "You have encountered an anomaly."
 
 
+activeAction : Model -> TurnState -> List (Html Msg)
+activeAction model t =
+    case t.action of
+        NoAction ->
+            [ dice model
+            , actionButtons model
+            ]
+
+        Move spacesLeft ->
+            [ actionHint ("Select your next sector. You cannot move diagonally. You have " ++ String.fromInt spacesLeft ++ " moves left.") ]
+
+        MapSector ->
+            [ actionHint ("Select a sector to map within " ++ String.fromInt t.roll.d10 ++ " spaces.")
+            , Html.div [] []
+            ]
+
+        ResourceScan ->
+            [ actionHint ("Select a sector to scan for resources within " ++ String.fromInt t.roll.d10 ++ " spaces.")
+            , Html.div [] []
+            ]
+
+        Anomaly ->
+            [ Html.div [ class "flex items-center h-[5rem]" ]
+                [ actionHint <| anomalyMessage t ]
+            , actionButtons model
+            ]
+
+
 actionArea : Model -> Html Msg
 actionArea model =
-    Html.div [ class "flex flex-col mb-4 h-[8rem]" ]
-        (case model.location of
+    let
+        handleTurnState =
+            case model.turnState of
+                Just t ->
+                    activeAction model t
+
+                Nothing ->
+                    [ dice model
+                    , actionButtons model
+                    ]
+    in
+    Html.div [ class "flex flex-col h-[9rem] justify-center" ] <|
+        case model.location of
             Nothing ->
                 [ Html.div [ class "flex italic font-medium text-center items-center justify-center h-full w-full" ]
-                    [ Html.text "Select a starting sector to begin" ]
+                    [ Html.text "Select a starting sector to begin." ]
                 ]
 
-            Just _ ->
-                case model.turnState of
-                    Just t ->
-                        case t.action of
-                            NoAction ->
-                                [ dice model
-                                , actionButtons model
-                                ]
-
-                            Move spacesLeft ->
-                                [ dice model
-                                , actionHint ("Select your next sector. You cannot move diagonally. You have " ++ String.fromInt spacesLeft ++ " moves left.")
-                                ]
-
-                            MapSector ->
-                                [ dice model
-                                , actionHint ("Select a sector to map within " ++ String.fromInt t.roll.d10 ++ " spaces.")
-                                ]
-
-                            ResourceScan ->
-                                [ dice model
-                                , actionHint ("Select a sector to scan for resources within " ++ String.fromInt t.roll.d10 ++ " spaces.")
-                                ]
-
-                            Anomaly ->
-                                [ Html.div [ class "flex items-center h-[5rem]" ]
-                                    [ actionHint <| anomalyMessage t ]
-
-                                -- TODO: make this show all the details of the anomaly
-                                , actionButtons model
-                                ]
-
+            Just l ->
+                case getCurrentSector model of
                     Nothing ->
-                        [ dice model
-                        , actionButtons model
-                        ]
-        )
+                        handleTurnState
+
+                    Just s ->
+                        case s.resource of
+                            Undiscovered ->
+                                handleTurnState
+
+                            Discovered r ->
+                                case r.count of
+                                    0 ->
+                                        handleTurnState
+
+                                    _ ->
+                                        [ actionHint "Select an upgrade to spend these resources on."
+                                        , collectResourceButtons l r
+                                        ]
+
+
+intToTallyMarks : Int -> String
+intToTallyMarks i =
+    case i of
+        0 ->
+            ""
+
+        1 ->
+            "𝍩"
+
+        2 ->
+            "𝍪"
+
+        3 ->
+            "𝍫"
+
+        4 ->
+            "𝍬"
+
+        5 ->
+            "𝍸"
+
+        _ ->
+            "𝍸 " ++ intToTallyMarks (i - 5)
+
+
+upgradeTrackingArea : Model -> Html Msg
+upgradeTrackingArea model =
+    let
+        rowStyle =
+            "flex flex-row justify-around h-[4rem]"
+
+        cellStyle =
+            "flex flex-col w-1/3 items-center"
+
+        headerStyle =
+            "flex size-fit justify-center border-b-1 border-black/50"
+
+        tallyStyle =
+            "text-2xl"
+    in
+    Html.div [ class "flex flex-col my-2" ]
+        [ Html.div [ class rowStyle ]
+            [ Html.div [ class cellStyle ]
+                [ Html.div [ class headerStyle ] [ Html.text "Blink Drive" ]
+                , Html.div [ class tallyStyle ] [ Html.text <| intToTallyMarks model.upgradeProgress.blinkDrive ]
+                ]
+            , Html.div [ class cellStyle ]
+                [ Html.div [ class headerStyle ] [ Html.text "Terraforming Tech" ]
+                , Html.div [ class tallyStyle ] [ Html.text <| intToTallyMarks model.upgradeProgress.terraformingTech ]
+                ]
+            ]
+        , Html.div [ class rowStyle ]
+            [ Html.div [ class cellStyle ]
+                [ Html.div [ class headerStyle ] [ Html.text "Ship Repairs" ]
+                , Html.div [ class tallyStyle ] [ Html.text <| intToTallyMarks model.upgradeProgress.shipRepairs ]
+                ]
+            , Html.div [ class cellStyle ]
+                [ Html.div [ class headerStyle ] [ Html.text "Scanner Tech" ]
+                , Html.div [ class tallyStyle ] [ Html.text <| intToTallyMarks model.upgradeProgress.scannerTech ]
+                ]
+            ]
+        ]
 
 
 board : Model -> Html Msg
@@ -267,13 +418,15 @@ board model =
             , actionArea model
             , Html.div [ class "flex flex-col w-full items-center" ]
                 [ map model
+
                 -- TODO: this div isn't quite right. I don't want this stuff to move when the actionHint is too long
                 , Html.div [ class "flex flex-col w-full" ]
-                    [ Html.div [] [ Html.text "Upgrades" ]
-                    , Html.div [] [ Html.text "Damage" ]
-                    , Html.div [] [ Html.text "Score" ]
-                    , Html.div [] [ Html.text "Roll history" ]
-                    , Html.div [] [ Html.text "Rules" ]
+                    [ upgradeTrackingArea model
+
+                    -- , Html.div [] [ Html.text "Damage" ]
+                    -- , Html.div [] [ Html.text "Score" ]
+                    -- , Html.div [] [ Html.text "Roll history" ]
+                    -- , Html.div [] [ Html.text "Rules" ]
                     ]
                 ]
             ]
@@ -281,17 +434,20 @@ board model =
 
 
 
--- NEXT: handle collecting resources
 -- NEXT: handle upgrades
+-- NEXT: action buttons are only clickable if there is at least one valid sector
 -- NEXT: handle special movement costs (nebula, enemy space)
 -- NEXT: handle resource limitations (no resources in enemy space; X for count when kind is None)
 -- NEXT: handle endgame (turn counting)/scoring!
+-- NEXT: tests (for the update logic at least, and ideally for the data handling stuff, board is the only skippable part and only if it is _very_ complex)
+-- NEXT: refactor. There is lots of sprawl. Can any of it be reduced?
 -- NEXT: handle showing active effects
 -- NEXT: ability to abort action somehow... (maybe trap esc and have the help hint show "Press ESC to abort")
 -- NEXT: handle roll history
 -- NEXT: handle rules display
 -- NEXT: don't allow selecting an option if there will be _zero_ valid moves for it
 -- NEXT: put the "would be state" in the sector but blurred when there is an action selected or hovered
+-- NEXT: when hovering over resource buttons change the action hint to be the benefit of each upgrade
 -- Tally marks!
 -- 𝍩
 -- 𝍪

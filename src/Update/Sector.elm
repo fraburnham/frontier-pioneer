@@ -1,9 +1,12 @@
 module Update.Sector exposing (..)
 
 import Array exposing (Array)
+import Data.Sector exposing (intToSectorKind)
 import Types exposing (..)
-import Types.Sector exposing (..)
-import Types.Resource exposing (Resource(..))
+
+
+
+-- TODO: these should probably go with the Data/*.elm stuff and get rid of the Update/*.elm
 
 
 arrayUpdate : Int -> (a -> a) -> Array a -> Array a

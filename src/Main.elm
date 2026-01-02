@@ -2,11 +2,11 @@ module Main exposing (main)
 
 import Array exposing (Array)
 import Browser
+import Data.Sector exposing (..)
 import Html exposing (Html)
 import Html.Attributes as Attribute exposing (class)
 import Html.Events as Event
 import Types exposing (..)
-import Types.Sector exposing (..)
 import Update exposing (update)
 import View.Board exposing (board)
 
@@ -28,9 +28,9 @@ initialSectors =
 initialUpgrades : UpgradeProgress
 initialUpgrades =
     { blinkDrive = 0
-    , terraformingTechnology = 0
-    , shipImprovements = 0
-    , scannerTechnology = 0
+    , terraformingTech = 0
+    , shipRepairs = 0
+    , scannerTech = 0
     }
 
 

@@ -1,25 +1,6 @@
-module Types.Resource exposing (..)
+module Data.Resource exposing (..)
 
-
-type ResourceKind
-    = None -- TODO: change this to NoResource
-    | Water
-    | RawMetals
-    | MetalAlloys
-    | Silicon
-    | DarkMatter
-    | ExoticMinerals
-
-
-type alias ResourceData =
-    { kind : ResourceKind
-    , count : Int
-    }
-
-
-type Resource
-    = Discovered ResourceData
-    | Undiscovered
+import Types exposing (..)
 
 
 resourceKindToName : ResourceKind -> String

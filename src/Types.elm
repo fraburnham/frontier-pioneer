@@ -1,8 +1,56 @@
 module Types exposing (..)
 
 import Array exposing (Array)
-import Types.Resource exposing (..)
-import Types.Sector exposing (..)
+
+
+maxSectorRow : Int
+maxSectorRow =
+    12
+
+
+maxSectorCol : Int
+maxSectorCol =
+    12
+
+
+type SectorKind
+    = DeepSpace
+    | ColonizedSystem
+    | UncolonizedSystem
+    | Nebula
+    | EnemySpace
+
+
+type alias SectorData =
+    { kind : SectorKind
+    , resource : Resource
+    }
+
+
+type Sector
+    = Mapped SectorData
+    | Unmapped
+
+
+type ResourceKind
+    = None -- TODO: change this to NoResource
+    | Water
+    | RawMetals
+    | MetalAlloys
+    | Silicon
+    | DarkMatter
+    | ExoticMinerals
+
+
+type alias ResourceData =
+    { kind : ResourceKind
+    , count : Int
+    }
+
+
+type Resource
+    = Discovered ResourceData
+    | Undiscovered
 
 
 type alias Coordinates =
@@ -44,11 +92,18 @@ type alias TurnState =
     }
 
 
+type Upgrade
+    = BlinkDrive
+    | TerraformingTech
+    | ShipRepairs
+    | ScannerTech
+
+
 type alias UpgradeProgress =
     { blinkDrive : Int
-    , terraformingTechnology : Int
-    , shipImprovements : Int
-    , scannerTechnology : Int
+    , terraformingTech : Int
+    , shipRepairs : Int
+    , scannerTech : Int
     }
 
 
@@ -81,13 +136,8 @@ type Msg
     | UnhoveredAction
     | SelectedAction Action
     | PirateEncounter ( List Coordinates, List Coordinates )
-
-
-activeEffects : Model -> List Effect
-activeEffects model =
-    case model.temporaryEffect of
-        Nothing ->
-            model.effects
-
-        Just e ->
-            e :: model.effects
+    | ResourceCollected
+        { data : ResourceData
+        , location : Coordinates
+        , applyTo : Upgrade
+        }

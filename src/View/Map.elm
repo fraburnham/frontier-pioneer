@@ -1,13 +1,14 @@
 module View.Map exposing (map)
 
 import Array exposing (Array)
+import Data.Effect exposing (..)
+import Data.Resource exposing (..)
+import Data.Sector exposing (..)
 import Html exposing (Html)
 import Html.Attributes as Attribute exposing (class, id, title)
 import Html.Events exposing (onClick)
 import Rules exposing (..)
 import Types exposing (..)
-import Types.Resource exposing (..)
-import Types.Sector exposing (..)
 
 
 sectorStyleMapped : Model -> Sector -> String
