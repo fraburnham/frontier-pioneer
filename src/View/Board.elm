@@ -19,6 +19,15 @@ header =
         [ Html.text "Frontier Pioneer" ]
 
 
+numberInformation : String -> String -> String -> Html Msg
+numberInformation classes heading value =
+    Html.div [ class classes ]
+        [ Html.div [ class "border-b-1 border-black/50 font-light" ] [ Html.text heading ]
+        , Html.div []
+            [ Html.text value ]
+        ]
+
+
 dieStyle : Model -> Die -> String
 dieStyle model d =
     let
@@ -78,19 +87,13 @@ dieStyle model d =
 
 die : String -> String -> Maybe Int -> Html Msg
 die style kind val =
-    Html.div [ class style ]
-        [ Html.div [ class "border-b-1 border-black/50 font-light" ] [ Html.text kind ]
-        , Html.div []
-            [ Html.text
-                (case val of
-                    Nothing ->
-                        "?"
+    numberInformation style kind <|
+        case val of
+            Nothing ->
+                "?"
 
-                    Just v ->
-                        String.fromInt v
-                )
-            ]
-        ]
+            Just v ->
+                String.fromInt v
 
 
 dice : Model -> Html Msg
@@ -434,8 +437,8 @@ actionArea model =
                                                 ]
 
 
-upgradeTrackingArea : Model -> Html Msg
-upgradeTrackingArea model =
+trackingArea : Model -> Html Msg
+trackingArea model =
     let
         rowStyle =
             "flex flex-row justify-around items-center h-[4rem]"
@@ -449,26 +452,21 @@ upgradeTrackingArea model =
         tallyStyle =
             "font-medium"
     in
-    Html.div [ class "flex flex-col my-2 w-full max-w-2/3 2xl:max-w-full" ]
+    Html.div
+        [ class "flex flex-col my-2 w-full max-w-2/3 2xl:max-w-full"
+        , id "upgrade-tracking-container"
+        ]
         [ Html.div [ class rowStyle ]
-            [ Html.div [ class cellStyle ]
-                [ Html.div [ class headerStyle ] [ Html.text "Blink Drive" ]
-                , Html.div [ class tallyStyle ] [ Html.text <| String.fromInt model.upgradeProgress.blinkDrive ]
-                ]
-            , Html.div [ class cellStyle ]
-                [ Html.div [ class headerStyle ] [ Html.text "Terraforming Tech" ]
-                , Html.div [ class tallyStyle ] [ Html.text <| String.fromInt model.upgradeProgress.terraformingTech ]
-                ]
+            [ numberInformation cellStyle "Score" (String.fromInt <| calcScore model)
+            , numberInformation cellStyle "Damage" <| String.fromInt model.damage
             ]
         , Html.div [ class rowStyle ]
-            [ Html.div [ class cellStyle ]
-                [ Html.div [ class headerStyle ] [ Html.text "Ship Repairs" ]
-                , Html.div [ class tallyStyle ] [ Html.text <| String.fromInt model.upgradeProgress.shipRepairs ]
-                ]
-            , Html.div [ class cellStyle ]
-                [ Html.div [ class headerStyle ] [ Html.text "Scanner Tech" ]
-                , Html.div [ class tallyStyle ] [ Html.text <| String.fromInt model.upgradeProgress.scannerTech ]
-                ]
+            [ numberInformation cellStyle "Blink Drive" <| String.fromInt model.upgradeProgress.blinkDrive
+            , numberInformation cellStyle "Terraforming Tech" <| String.fromInt model.upgradeProgress.terraformingTech
+            ]
+        , Html.div [ class rowStyle ]
+            [ numberInformation cellStyle "Ship Repairs" <| String.fromInt model.upgradeProgress.shipRepairs
+            , numberInformation cellStyle "Scanner Tech" <| String.fromInt model.upgradeProgress.scannerTech
             ]
         ]
 
@@ -494,9 +492,7 @@ board model =
             -- TODO: figure out how to make both panes the same size when side by side
             , Html.div [ class "flex w-full h-full justify-center 2xl:w-5/12" ]
                 [ Html.div [ class "flex w-full flex-col items-center 2xl:items-start" ]
-                    [ Html.div [] [ Html.text "Score" ]
-                    , Html.div [] [ Html.text "Damage" ]
-                    , upgradeTrackingArea model
+                    [ trackingArea model
                     , Html.div [] [ Html.text "Rules" ]
                     ]
                 ]
@@ -505,8 +501,6 @@ board model =
 
 
 
--- NEXT: display damage
--- NEXT: display score
 -- NEXT: (make this jibe with the rules) make upgrades require 10 _of each kind of resource_ they can accept. That'll keep it from being too easy. (Maybe? Do _something_ to make scanner tech weaker. Maybe it only maps... Maybe a smaller die is used for auto mapped resources...)
 -- NEXT: handle rules display
 -- NEXT: handle showing active effects

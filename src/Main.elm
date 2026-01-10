@@ -30,7 +30,7 @@ initialUpgrades =
     { blinkDrive = 0
     , terraformingTech = 0
     , shipRepairs = 0
-    , scannerTech = 20
+    , scannerTech = 0
     }
 
 
