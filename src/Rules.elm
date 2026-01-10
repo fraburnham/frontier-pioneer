@@ -1,5 +1,6 @@
 module Rules exposing (..)
 
+import Data.Effect exposing (..)
 import Data.Resource exposing (..)
 import Data.Sector exposing (..)
 import Types exposing (..)
@@ -82,6 +83,21 @@ validMove movesLeft curLocation newLocation =
     (movesLeft > 0) && (gameDistance curLocation newLocation == 1)
 
 
+validMoveModel : Model -> Coordinates -> Bool
+validMoveModel model newLocation =
+    case model.location of
+        Nothing ->
+            False
+
+        Just l ->
+            case Debug.log "ts" model.turnState of
+                Nothing ->
+                    False
+
+                Just t ->
+                    validMoveHover t.roll.d4 l newLocation
+
+
 validMoveHover : Int -> Coordinates -> Coordinates -> Bool
 validMoveHover movesLeft curLocation newLocation =
     (movesLeft > 0) && (gameDistance curLocation newLocation <= movesLeft)
@@ -105,6 +121,26 @@ validMapSector effects range sector curLocation sectorLocation =
            )
 
 
+validMapSectorModel : Model -> Coordinates -> Bool
+validMapSectorModel model sectorLocation =
+    case model.location of
+        Nothing ->
+            False
+
+        Just l ->
+            case model.turnState of
+                Nothing ->
+                    False
+
+                Just t ->
+                    case getSector model sectorLocation of
+                        Nothing ->
+                            False
+
+                        Just s ->
+                            validMapSector (activeEffects model) t.roll.d10 s l sectorLocation
+
+
 validResourceScan : TurnState -> List Effect -> Int -> Sector -> Coordinates -> Coordinates -> Bool
 validResourceScan turnState effects range sector curLocation sectorLocation =
     -- TODO: Break the fns out and use an every of some kind
@@ -121,7 +157,7 @@ validResourceScan turnState effects range sector curLocation sectorLocation =
 
                                 Undiscovered ->
                                     True
-                                        && (case Debug.log "Would get" <| intToResourceKind turnState.roll.d8 of
+                                        && (case intToResourceKind turnState.roll.d8 of
                                                 Water ->
                                                     case s.kind of
                                                         DeepSpace ->
@@ -151,3 +187,23 @@ validResourceScan turnState effects range sector curLocation sectorLocation =
                                            )
                            )
            )
+
+
+validResourceScanModel : Model -> Coordinates -> Bool
+validResourceScanModel model sectorLocation =
+    case model.location of
+        Nothing ->
+            False
+
+        Just l ->
+            case model.turnState of
+                Nothing ->
+                    False
+
+                Just t ->
+                    case getSector model sectorLocation of
+                        Nothing ->
+                            False
+
+                        Just s ->
+                            validResourceScan t (activeEffects model) t.roll.d10 s l sectorLocation

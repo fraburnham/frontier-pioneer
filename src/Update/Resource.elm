@@ -103,3 +103,19 @@ resourceUpdate fn coords sectors =
                                     Array.set coords.row
                                         (Array.set coords.col (Mapped { s | resource = Discovered (fn r) }) row)
                                         sectors
+
+
+getResource : Model -> Maybe ResourceData
+getResource model =
+    case getCurrentSector model of
+        -- TODO: refactor these into Maybe.andThen
+        Nothing ->
+            Nothing
+
+        Just sd ->
+            case sd.resource of
+                Undiscovered ->
+                    Nothing
+
+                Discovered rd ->
+                    Just rd

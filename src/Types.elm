@@ -143,6 +143,7 @@ type Msg
     = SectorClicked Coordinates
     | RollDice
     | Rolled RollResult
+    | RolledDuringMove RollResult
     | HoveredAction Action
     | UnhoveredAction
     | SelectedAction Action

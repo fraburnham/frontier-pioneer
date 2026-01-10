@@ -9,6 +9,7 @@ import Html.Attributes as Attribute exposing (class, id, title)
 import Html.Events exposing (onClick)
 import Rules exposing (..)
 import Types exposing (..)
+import Update.Resource exposing (getResource)
 
 
 sectorStyleMapped : Model -> Sector -> String
@@ -28,12 +29,11 @@ sectorStyleCurrentLocation model col row =
             ""
 
         Just l ->
-            case l.col == col && l.row == row of
-                True ->
-                    "bg-sky-100"
+            if l.col == col && l.row == row then
+                "bg-sky-100"
 
-                False ->
-                    ""
+            else
+                ""
 
 
 sectorStyleValidForAction : Model -> Int -> Int -> Sector -> String
@@ -67,28 +67,25 @@ sectorStyleValidForAction model col row s =
                         Just ha ->
                             case ha of
                                 Move ml ->
-                                    case validMoveHover ml l coords of
-                                        True ->
-                                            validStyle
+                                    if validMoveHover ml l coords then
+                                        validStyle
 
-                                        False ->
-                                            invalidStyle
+                                    else
+                                        invalidStyle
 
                                 MapSector ->
-                                    case validMapSector effects t.roll.d10 s l coords of
-                                        True ->
-                                            validStyle
+                                    if validMapSector effects t.roll.d10 s l coords then
+                                        validStyle
 
-                                        False ->
-                                            invalidStyle
+                                    else
+                                        invalidStyle
 
                                 ResourceScan ->
-                                    case validResourceScan t effects t.roll.d10 s l coords of
-                                        True ->
-                                            validStyle
+                                    if validResourceScan t effects t.roll.d10 s l coords then
+                                        validStyle
 
-                                        False ->
-                                            invalidStyle
+                                    else
+                                        invalidStyle
 
                                 _ ->
                                     invalidStyle
@@ -159,15 +156,34 @@ sector model row col data =
         sectorRowStyleResolved =
             sectorRowStyle data
 
+        sectorUnclickable =
+            [ class (sectorStyle model col row data) ]
+
+        sectorClickable =
+            sectorUnclickable
+                ++ [ onClick
+                        (SectorClicked
+                            { row = row
+                            , col = col
+                            }
+                        )
+                   ]
+
         sectorAttributes =
-            [ class (sectorStyle model col row data)
-            , onClick
-                (SectorClicked
-                    { row = row
-                    , col = col
-                    }
-                )
-            ]
+            case getResource model of
+                Nothing ->
+                    sectorClickable
+
+                Just rd ->
+                    case ( rd.kind, rd.count > 0 ) of
+                        ( None, _ ) ->
+                            sectorClickable
+
+                        ( _, True ) ->
+                            sectorUnclickable
+
+                        _ ->
+                            sectorClickable
     in
     case data of
         Unmapped ->
@@ -209,7 +225,14 @@ sector model row col data =
                     Discovered rd ->
                         Html.div [ class sectorRowStyleResolved ]
                             [ Html.div [ class sectorBoxStyle ]
-                                [ Html.text (String.fromInt rd.count) ]
+                                [ Html.text <|
+                                    case rd.kind of
+                                        None ->
+                                            "—"
+
+                                        _ ->
+                                            String.fromInt rd.count
+                                ]
                             , Html.div
                                 [ class sectorBoxStyle
                                 , title (resourceKindToName rd.kind)

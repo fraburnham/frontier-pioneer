@@ -9,7 +9,7 @@ def build-static [] {
 
 def build-app [] {
   print "Building app"
-  elm make src/Main.elm --output=dist/app.js --debug
+  elm make src/Main.elm --output=dist/app.js --debug #--optimize
 }
 
 def build-css [] {

@@ -1,6 +1,6 @@
 module View.Board exposing (board)
 
-import Array
+import Array exposing (Array)
 import Data.Damage exposing (..)
 import Data.Effect exposing (..)
 import Data.Sector exposing (..)
@@ -125,6 +125,21 @@ buttonStyle =
     class "flex items-center justify-center border-1 rounded size-fit py-2 w-1/4 h-full hover:font-medium hover:border-2 mx-1"
 
 
+buttonInactiveStyle : Html.Attribute Msg
+buttonInactiveStyle =
+    class "flex items-center justify-center border-1 rounded size-fit py-2 w-1/4 h-full mx-1 blur-[1px] opacity-50"
+
+
+flatten : Array (Array a) -> Array a
+flatten arr =
+    Array.foldl
+        (\acc el ->
+            Array.append acc el
+        )
+        Array.empty
+        (Debug.log "Arr" arr)
+
+
 actionButtons : Model -> Html Msg
 actionButtons model =
     let
@@ -152,22 +167,61 @@ actionButtons model =
                                 movementDistanceModifier (activeEffects model) t.roll.d4
                         in
                         [ Html.div
-                            [ buttonStyle
-                            , onClick (SelectedAction (Move moveDistance))
+                            [ if
+                                sectorMap
+                                    (\newLocation _ ->
+                                        validMoveModel model newLocation
+                                    )
+                                    model.sectors
+                                    |> flatten
+                                    |> Array.toList
+                                    |> List.any identity
+                              then
+                                buttonStyle
+
+                              else
+                                buttonInactiveStyle
+                            , onClick (SelectedAction (Move moveDistance)) -- TODO: don't actually let people click it either
                             , onMouseEnter (HoveredAction (Move moveDistance))
                             , onMouseLeave UnhoveredAction
                             ]
                             [ Html.text "Move" ]
                         , Html.div
-                            [ buttonStyle
-                            , onClick (SelectedAction MapSector)
+                            [ if
+                                sectorMap
+                                    (\newLocation _ ->
+                                        validMapSectorModel model newLocation
+                                    )
+                                    model.sectors
+                                    |> flatten
+                                    |> Array.toList
+                                    |> List.any identity
+                              then
+                                buttonStyle
+
+                              else
+                                buttonInactiveStyle
+                            , onClick (SelectedAction MapSector) -- TODO: don't actually let people click it either
                             , onMouseEnter (HoveredAction MapSector)
                             , onMouseLeave UnhoveredAction
                             ]
                             [ Html.text "Map Sector" ]
                         , Html.div
-                            [ buttonStyle
-                            , onClick (SelectedAction ResourceScan)
+                            [ if
+                                sectorMap
+                                    (\newLocation _ ->
+                                        validResourceScanModel model newLocation
+                                    )
+                                    model.sectors
+                                    |> flatten
+                                    |> Array.toList
+                                    |> List.any identity
+                              then
+                                buttonStyle
+
+                              else
+                                buttonInactiveStyle
+                            , onClick (SelectedAction ResourceScan) -- TODO: don't actually let people click it either
                             , onMouseEnter (HoveredAction ResourceScan)
                             , onMouseLeave UnhoveredAction
                             ]
@@ -208,6 +262,7 @@ collectResourceButtons l r =
     Html.div [ class "flex justify-around items-center text-center w-full h-[3rem]" ] <|
         case r.kind of
             None ->
+                -- This is broken when there are no more moves left
                 []
 
             Water ->
@@ -334,18 +389,17 @@ actionArea model =
                     activeAction model t
 
                 Nothing ->
-                    case model.turnNumber > maxTurns of
-                        True ->
-                            [ Html.div [ class "flex flex-col items-center justify-center" ]
-                                [ actionHint "Game Over!"
-                                , actionHint <| "Score: " ++ String.fromInt (calcScore model)
-                                ]
+                    if model.turnNumber > maxTurns then
+                        [ Html.div [ class "flex flex-col items-center justify-center" ]
+                            [ actionHint "Game Over!"
+                            , actionHint <| "Score: " ++ String.fromInt (calcScore model)
                             ]
+                        ]
 
-                        False ->
-                            [ dice model
-                            , actionButtons model
-                            ]
+                    else
+                        [ dice model
+                        , actionButtons model
+                        ]
     in
     Html.div [ class "flex flex-col h-[9rem] justify-center" ] <|
         case model.location of
@@ -370,70 +424,50 @@ actionArea model =
                                         handleTurnState
 
                                     _ ->
-                                        [ actionHint "Select an upgrade to spend these resources on."
-                                        , collectResourceButtons l r
-                                        ]
+                                        case r.kind of
+                                            None ->
+                                                handleTurnState
 
-
-intToTallyMarks : Int -> String
-intToTallyMarks i =
-    case i of
-        0 ->
-            ""
-
-        1 ->
-            "𝍩"
-
-        2 ->
-            "𝍪"
-
-        3 ->
-            "𝍫"
-
-        4 ->
-            "𝍬"
-
-        5 ->
-            "𝍸"
-
-        _ ->
-            "𝍸 " ++ intToTallyMarks (i - 5)
+                                            _ ->
+                                                [ actionHint "Select an upgrade to spend these resources on."
+                                                , collectResourceButtons l r
+                                                ]
 
 
 upgradeTrackingArea : Model -> Html Msg
 upgradeTrackingArea model =
     let
         rowStyle =
-            "flex flex-row justify-around h-[4rem]"
+            "flex flex-row justify-around items-center h-[4rem]"
 
         cellStyle =
             "flex flex-col w-1/3 items-center"
 
         headerStyle =
-            "flex size-fit justify-center border-b-1 border-black/50"
+            "flex size-fit justify-center border-b-1 border-black/50 font-light"
 
         tallyStyle =
-            "text-2xl"
+            "font-medium"
     in
-    Html.div [ class "flex flex-col my-2" ]
+    Html.div [ class "flex flex-col my-2 w-full max-w-2/3 2xl:max-w-full" ]
         [ Html.div [ class rowStyle ]
             [ Html.div [ class cellStyle ]
                 [ Html.div [ class headerStyle ] [ Html.text "Blink Drive" ]
-                , Html.div [ class tallyStyle ] [ Html.text <| intToTallyMarks model.upgradeProgress.blinkDrive ]
+                , Html.div [ class tallyStyle ] [ Html.text <| String.fromInt model.upgradeProgress.blinkDrive ]
                 ]
             , Html.div [ class cellStyle ]
                 [ Html.div [ class headerStyle ] [ Html.text "Terraforming Tech" ]
-                , Html.div [ class tallyStyle ] [ Html.text <| intToTallyMarks model.upgradeProgress.terraformingTech ]
+                , Html.div [ class tallyStyle ] [ Html.text <| String.fromInt model.upgradeProgress.terraformingTech ]
                 ]
             ]
         , Html.div [ class rowStyle ]
             [ Html.div [ class cellStyle ]
                 [ Html.div [ class headerStyle ] [ Html.text "Ship Repairs" ]
-                , Html.div [ class tallyStyle ] [ Html.text <| intToTallyMarks model.upgradeProgress.shipRepairs ]
+                , Html.div [ class tallyStyle ] [ Html.text <| String.fromInt model.upgradeProgress.shipRepairs ]
                 ]
             , Html.div [ class cellStyle ]
                 [ Html.div [ class headerStyle ] [ Html.text "Scanner Tech" ]
-                , Html.div [ class tallyStyle ] [ Html.text <| intToTallyMarks model.upgradeProgress.scannerTech ]
+                , Html.div [ class tallyStyle ] [ Html.text <| String.fromInt model.upgradeProgress.scannerTech ]
                 ]
             ]
         ]
@@ -441,24 +475,29 @@ upgradeTrackingArea model =
 
 board : Model -> Html Msg
 board model =
-    Html.div [ class "font-['Exo_2'] flex justify-center items-center" ]
-        [ Html.div
-            [ id "board"
-            , class "flex flex-col size-fit p-4"
-            ]
-            [ header
-            , actionArea model
-            , Html.div [ class "flex flex-col w-full items-center" ]
-                [ map model
+    Html.div [ class "font-['Exo_2'] flex flex-col justify-center items-center w-full" ]
+        [ header
+        , Html.div [ class "flex flex-col 2xl:flex-row w-full items-center 2xl:justify-center 2xl:items-start" ]
+            [ Html.div [ class "flex" ]
+                [ Html.div
+                    [ id "board"
+                    , class "flex flex-col size-fit p-4"
+                    ]
+                    [ actionArea model
 
-                -- TODO: this div isn't quite right. I don't want this stuff to move when the actionHint is too long
-                , Html.div [ class "flex flex-col w-full" ]
-                    [ upgradeTrackingArea model
+                    -- TODO: ought to set widhts on each of these
+                    , Html.div [ class "flex flex-col w-full items-center" ]
+                        [ map model ]
+                    ]
+                ]
 
-                    -- , Html.div [] [ Html.text "Damage" ]
-                    -- , Html.div [] [ Html.text "Score" ]
-                    -- , Html.div [] [ Html.text "Roll history" ]
-                    -- , Html.div [] [ Html.text "Rules" ]
+            -- TODO: figure out how to make both panes the same size when side by side
+            , Html.div [ class "flex w-full h-full justify-center 2xl:w-5/12" ]
+                [ Html.div [ class "flex w-full flex-col items-center 2xl:items-start" ]
+                    [ Html.div [] [ Html.text "Score" ]
+                    , Html.div [] [ Html.text "Damage" ]
+                    , upgradeTrackingArea model
+                    , Html.div [] [ Html.text "Rules" ]
                     ]
                 ]
             ]
@@ -466,18 +505,16 @@ board model =
 
 
 
--- PLAYABLE! (sorta)
+-- NEXT: display damage
+-- NEXT: display score
+-- NEXT: (make this jibe with the rules) make upgrades require 10 _of each kind of resource_ they can accept. That'll keep it from being too easy. (Maybe? Do _something_ to make scanner tech weaker. Maybe it only maps... Maybe a smaller die is used for auto mapped resources...)
 -- NEXT: handle rules display
--- FIX: don't allow sector clicking to advance the move if there are resources to collect
--- FIX: action buttons are only clickable if there is at least one valid sector (don't allow selecting an option if there will be _zero_ valid moves for it)
--- FIX: when an anomaly happens as the last turn the player gets an _extra_ turn
--- NEXT: some reactive stuff like showing the board and info sections side by side for wide enough viewports
--- NEXT: tests (for the update logic at least, and ideally for the data handling stuff, board is the only skippable part and only if it is _very_ complex)
--- NEXT: refactor. There is lots of sprawl. Can any of it be reduced?
 -- NEXT: handle showing active effects
 -- NEXT: ability to abort action somehow... (maybe trap esc and have the help hint show "Press ESC to abort")
+-- NEXT: tests (for the update logic at least, and ideally for the data handling stuff, board is the only skippable part and only if it is _very_ complex)
+-- NEXT: refactor. There is lots of sprawl. Can any of it be reduced? (Maybe.andThen, >>, <<, compose up lower fns to work on the model)
+--       Update/* for fns that return Model or ( Model, Cmd ), Data/* for fns that reduce a type to something smaller
 -- NEXT: handle roll history
 -- NEXT: put the "would be state" in the sector but blurred when there is an action selected or hovered
 -- NEXT: when hovering over resource buttons change the action hint to be the benefit of each upgrade
 -- NEXT: handle multiplayer by pre-generating rolls and allowing them to be exported to a file
-

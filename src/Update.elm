@@ -15,9 +15,9 @@ import Update.Resource exposing (..)
 import Update.Sector exposing (..)
 
 
-rollDice : Cmd Msg
-rollDice =
-    Random.generate Rolled
+rollDice : (RollResult -> Msg) -> Cmd Msg
+rollDice msg =
+    Random.generate msg
         (Random.constant
             (\d4 d6 d8 d10 d12 d20 ->
                 { d4 = d4
@@ -63,12 +63,11 @@ consumeMovementPoints movesLeft sector =
 
 scanningImproved : TurnState -> List Effect -> Coordinates -> Array (Array Sector) -> Array (Array Sector)
 scanningImproved turnState effects coords sectors =
-    case List.member ScanningImproved effects of
-        False ->
-            sectors
+    if List.member ScanningImproved effects then
+        updateSector (mapSector turnState >> resourceScan effects turnState) sectors coords
 
-        True ->
-            updateSector (mapSector turnState >> resourceScan effects turnState) sectors coords
+    else
+        sectors
 
 
 enemySector : Maybe Sector -> Int -> Int
@@ -91,7 +90,7 @@ enemySector maybeSector damage =
                             damage
 
 
-sectorClicked : Model -> Coordinates -> Model
+sectorClicked : Model -> Coordinates -> ( Model, Cmd Msg )
 sectorClicked model coords =
     let
         effects =
@@ -99,75 +98,81 @@ sectorClicked model coords =
     in
     case model.location of
         Nothing ->
-            { model | location = Just coords }
+            ( { model | location = Just coords }, Cmd.none )
 
         Just l ->
             case model.turnState of
                 Nothing ->
-                    model
+                    ( model, Cmd.none )
 
                 Just t ->
-                    case t.action of
+                    case Debug.log "Action" t.action of
                         NoAction ->
-                            model
+                            ( model, Cmd.none )
 
                         Move movesLeft ->
                             -- coords is the new/clicked location, if it is enemy space then damage is suffered
-                            case validMove movesLeft l coords of
-                                True ->
-                                    { model
-                                        | location = Just coords
-                                        , sectors = scanningImproved t effects coords model.sectors
-                                        , damage = enemySector (getSector model coords) model.damage
-                                        , turnState =
-                                            case movesLeft of
-                                                0 ->
-                                                    Nothing
+                            -- This is where I want to send a roll command
+                            if validMove movesLeft l coords then
+                                ( { model
+                                    | location = Just coords
+                                    , sectors = scanningImproved t effects coords model.sectors
+                                    , damage = enemySector (Data.Sector.getSector model coords) model.damage
+                                    , turnState =
+                                        case movesLeft of
+                                            0 ->
+                                                Nothing
 
-                                                1 ->
-                                                    Nothing
+                                            1 ->
+                                                Nothing
 
-                                                _ ->
-                                                    Just { t | action = Move <| consumeMovementPoints movesLeft <| getCurrentSector model }
-                                    }
+                                            _ ->
+                                                Just { t | action = Move <| consumeMovementPoints movesLeft <| getCurrentSector model }
+                                  }
+                                , rollDice RolledDuringMove
+                                )
 
-                                False ->
-                                    model
+                            else
+                                ( model, Cmd.none )
 
                         MapSector ->
-                            case getSector model coords of
+                            case Data.Sector.getSector model coords of
                                 Nothing ->
-                                    model
+                                    ( model, Cmd.none )
 
                                 Just s ->
                                     case validMapSector effects t.roll.d10 s l coords of
                                         True ->
-                                            { model
+                                            ( { model
                                                 | sectors = updateSector (mapSector t) model.sectors coords
                                                 , turnState = Nothing
-                                            }
+                                              }
+                                            , Cmd.none
+                                            )
 
                                         _ ->
-                                            model
+                                            ( model, Cmd.none )
 
                         ResourceScan ->
-                            case getSector model coords of
+                            case Data.Sector.getSector model coords of
                                 Nothing ->
-                                    model
+                                    ( model, Cmd.none )
 
                                 Just s ->
                                     case validResourceScan t effects t.roll.d10 s l coords of
                                         False ->
-                                            model
+                                            ( model, Cmd.none )
 
                                         True ->
-                                            { model
+                                            ( { model
                                                 | sectors = updateSector (resourceScan effects t) model.sectors coords
                                                 , turnState = Nothing
-                                            }
+                                              }
+                                            , Cmd.none
+                                            )
 
                         Anomaly ->
-                            model
+                            ( model, Cmd.none )
 
 
 updateTurnStateAction : Action -> Model -> Model
@@ -348,17 +353,15 @@ setUpgradeEffects upgrade model =
         eff =
             upgradeToEffect upgrade
     in
-    case upgradeProgress upgrade model >= numResourcesToUpgrade of
-        False ->
+    if upgradeProgress upgrade model >= numResourcesToUpgrade then
+        if List.member eff model.effects then
             model
 
-        True ->
-            case List.member eff model.effects of
-                True ->
-                    model
+        else
+            { model | effects = eff :: model.effects }
 
-                False ->
-                    { model | effects = eff :: model.effects }
+    else
+        model
 
 
 updateTurnCounter : Model -> Model
@@ -370,26 +373,36 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         SectorClicked c ->
-            ( sectorClicked model c
-            , Cmd.none
-            )
+            sectorClicked model c
 
         RollDice ->
             -- TODO: rename RollDice to StartTurn
-            case model.turnNumber > maxTurns of
-                True ->
-                    ( { model | turnState = Nothing }, Cmd.none )
+            if model.turnNumber > maxTurns then
+                ( { model | turnState = Nothing }, Cmd.none )
 
-                False ->
-                    ( removeHoveredAction model
-                        |> clearTemporaryEffect
-                        |> setUpgradeEffects BlinkDrive
-                        |> setUpgradeEffects TerraformingTech
-                        |> setUpgradeEffects ShipRepairs
-                        |> setUpgradeEffects ScannerTech
-                        |> updateTurnCounter
-                    , rollDice
+            else
+                ( removeHoveredAction model
+                    |> clearTemporaryEffect
+                    |> setUpgradeEffects BlinkDrive
+                    |> setUpgradeEffects TerraformingTech
+                    |> setUpgradeEffects ShipRepairs
+                    |> setUpgradeEffects ScannerTech
+                    |> updateTurnCounter
+                , rollDice Rolled
+                )
+
+        RolledDuringMove result ->
+            -- Now in here update the roll on the turn state, I think
+            case model.turnState of
+                Just t ->
+                    ( { model
+                        | turnState = Just { t | roll = result }
+                      }
+                    , Cmd.none
                     )
+
+                Nothing ->
+                    ( model, Cmd.none )
 
         Rolled result ->
             handleAnomaly
@@ -427,12 +440,11 @@ update msg model =
                 | sectors =
                     resourceMap
                         (\row col r ->
-                            case List.member { row = row, col = col } impactedCoordinates of
-                                False ->
-                                    r
+                            if List.member { row = row, col = col } impactedCoordinates then
+                                { r | count = 0 }
 
-                                True ->
-                                    { r | count = 0 }
+                            else
+                                r
                         )
                         model.sectors
               }

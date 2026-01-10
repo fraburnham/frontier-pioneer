@@ -112,3 +112,17 @@ sectorMapWhenMapped fn sectors =
                         fn coords s
         )
         sectors
+
+
+
+-- TODO: unify Data/* and Update/* (immutability means there should be little difference)
+
+
+getSector : Model -> Coordinates -> Maybe Sector
+getSector model coords =
+    case Array.get coords.row model.sectors of
+        Nothing ->
+            Nothing
+
+        Just row ->
+            Array.get coords.col row
