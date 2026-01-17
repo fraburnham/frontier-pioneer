@@ -220,7 +220,7 @@ resourceDiscovery model =
     let
         ruleText =
             """
-             Once a sector has been discovered it can be scanned for resources which can be collected by moving to that sector. You can scan the sector you're occupying.
+             Once a sector has been mapped it can be scanned for resources which can be collected by moving to that sector. You can scan the sector you're occupying.
             """
     in
     rulesSection "Resource Discovery"
@@ -287,6 +287,18 @@ anomaly model =
         ]
 
 
+overview : Html Msg
+overview =
+    rulesSection "Overview"
+        [ Html.text
+            """
+               Frontier Pioneer is a simultaneous, roll-and-write game with a fixed number of rounds where players explore procedurally generated space
+sectors, scan for resources, and upgrade their ships. Players do not take turns; instead, they independently choose actions based on the
+results of a shared dice pool. There are 30 rolls total for approximately 15min of play time.
+            """
+        ]
+
+
 rules : Model -> Html Msg
 rules model =
     Html.div
@@ -294,11 +306,12 @@ rules model =
         , class "flex justify-start mb-8 w-full p-2 overflow-y-auto"
         ]
         [ Html.div []
-            [ movement model
+            [ overview
+            , movement model
             , mapping model
             , resourceDiscovery model
-            , upgrades model
             , anomaly model
+            , upgrades model
 
             -- scoring
             ]
