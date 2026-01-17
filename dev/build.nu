@@ -9,7 +9,12 @@ def build-static [] {
 
 def build-app [] {
   print "Building app"
-  elm make src/Main.elm --output=dist/app.js --debug #--optimize
+  elm make src/Main.elm --output=dist/app.js --debug
+}
+
+def build-app-prod [] {
+  print "Building app"
+  elm make src/Main.elm --output=dist/app.js --optimize
 }
 
 def build-css [] {
@@ -25,6 +30,17 @@ def build-dev [] {
   build-static
   build-css
   build-app
+}
+
+def build-prod [] {
+  build-static
+  build-css
+  build-app-prod
+}
+
+export def "main prod" [] {
+  mkdir dist/
+  build-prod
 }
 
 export def main [] {

@@ -1,6 +1,7 @@
 module Types exposing (..)
 
 import Array exposing (Array)
+import Html exposing (Html)
 
 
 maxSectorRow : Int
@@ -86,6 +87,19 @@ type Die
     | D10
     | D12
     | D20
+
+
+type alias DieValueMeaning =
+    List ( Int, String )
+
+
+type DieUseMeaningValue
+    = Simple String
+    | Formatted (List (Html Msg))
+
+
+type alias DieUseMeaning =
+    List ( Die, String, DieUseMeaningValue )
 
 
 type Action

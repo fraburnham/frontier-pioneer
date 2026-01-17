@@ -11,6 +11,7 @@ import Html.Events exposing (onClick, onMouseEnter, onMouseLeave)
 import Rules exposing (..)
 import Types exposing (..)
 import View.Map exposing (map)
+import View.Rules exposing (rules)
 
 
 header : Html Msg
@@ -140,7 +141,7 @@ flatten arr =
             Array.append acc el
         )
         Array.empty
-        (Debug.log "Arr" arr)
+        arr
 
 
 actionButtons : Model -> Html Msg
@@ -441,7 +442,7 @@ trackingArea : Model -> Html Msg
 trackingArea model =
     let
         rowStyle =
-            "flex flex-row justify-around items-center h-[4rem]"
+            "flex flex-row justify-around items-center h-[4rem] mx-4"
 
         cellStyle =
             "flex flex-col w-1/3 items-center"
@@ -453,8 +454,8 @@ trackingArea model =
             "font-medium"
     in
     Html.div
-        [ class "flex flex-col my-2 w-full max-w-2/3 2xl:max-w-full"
-        , id "upgrade-tracking-container"
+        [ class "flex flex-col my-2 w-full 2xl:max-w-full"
+        , id "tracking-container"
         ]
         [ Html.div [ class rowStyle ]
             [ numberInformation cellStyle "Score" (String.fromInt <| calcScore model)
@@ -469,6 +470,10 @@ trackingArea model =
             , numberInformation cellStyle "Scanner Tech" <| String.fromInt model.upgradeProgress.scannerTech
             ]
         ]
+
+
+
+-- TODO: factor this into page, board, etc
 
 
 board : Model -> Html Msg
@@ -490,10 +495,13 @@ board model =
                 ]
 
             -- TODO: figure out how to make both panes the same size when side by side
-            , Html.div [ class "flex w-full h-full justify-center 2xl:w-5/12" ]
-                [ Html.div [ class "flex w-full flex-col items-center 2xl:items-start" ]
+            , Html.div
+                [ class "flex w-2/3 justify-center 2xl:w-5/12"
+                , id "subboard"
+                ]
+                [ Html.div [ class "flex w-full flex-col items-center 2xl:items-start 2xl:h-screen" ]
                     [ trackingArea model
-                    , Html.div [] [ Html.text "Rules" ]
+                    , rules model
                     ]
                 ]
             ]
@@ -501,8 +509,8 @@ board model =
 
 
 
--- NEXT: (make this jibe with the rules) make upgrades require 10 _of each kind of resource_ they can accept. That'll keep it from being too easy. (Maybe? Do _something_ to make scanner tech weaker. Maybe it only maps... Maybe a smaller die is used for auto mapped resources...)
 -- NEXT: handle rules display
+-- FIX: (start with a test case?) nebula movement cost isn't correct, shouldn't be able to exit the nebula if there is only one movement point left (since it costs two)
 -- NEXT: handle showing active effects
 -- NEXT: ability to abort action somehow... (maybe trap esc and have the help hint show "Press ESC to abort")
 -- NEXT: tests (for the update logic at least, and ideally for the data handling stuff, board is the only skippable part and only if it is _very_ complex)
@@ -512,3 +520,5 @@ board model =
 -- NEXT: put the "would be state" in the sector but blurred when there is an action selected or hovered
 -- NEXT: when hovering over resource buttons change the action hint to be the benefit of each upgrade
 -- NEXT: handle multiplayer by pre-generating rolls and allowing them to be exported to a file
+-- FIX: Don't let long action hints cause the board to get wider
+-- NEXT: something literate-esque to handle keeping rules in sync?

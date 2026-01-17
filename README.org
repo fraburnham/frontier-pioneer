@@ -54,26 +54,26 @@ At the beginning of the game there is no "map" defined. You can choose any arbit
 
 Upgrades require 20 resources each to enable.
 
-- Blink Drive (30 resources)
+- Blink Drive
   - 2x to moves
   - Usable resources
     - Dark Matter
     - Exotic Minerals
     - Water
-- Terraforming Technology (40 resources)
+- Terraforming Technology
   - Optionally use d20 for resources in star system sectors
   - Usable resources
     - Raw Metals
     - Metal Alloys
     - Water
-- Ship Repairs (20 resources)
+- Ship Repairs
   - +2 to resources
   - -1 to damage
   - Usable resources
     - Silicon
     - Metal Alloys
     - Water
-- Scanner Technology (40 resources)
+- Scanner Technology
   - Automatically map and resources when moving to a sector
   - Usable resources
     - Silicon
@@ -100,7 +100,7 @@ When you pass through a sector you can collect the resources in it. Entering a s
 You must map a sector before you're able to scan it for resources. Choose one sector within the range determined by the scan range (d10) and mark it as
 having the sector type (d6).
 
-- d10 (Scan Range): Determines how far the scan reaches.
+- d10 (Scan Range): Determines how far the mapping scan reaches.
 - d6 (Sector Type): Determines the type of sector that is mapped.
   1. Deep Space
   2. Colonized Star System
@@ -116,7 +116,7 @@ having the sector type (d6).
 
 Once a sector has been discovered it can be scanned for resources which can be collected by moving to that sector. You can scan the sector you're occupying.
 
-- d10 (Scan Range): Determines how far the scan reaches.
+- d10 (Scan Range): Determines how far the resource scan reaches.
 - d8 (Resource Type): Determines the type of resource discovered.
   1. Nothing
   2. Water

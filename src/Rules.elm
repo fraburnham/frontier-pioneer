@@ -19,22 +19,20 @@ gameDistance a b =
 
 movementImpaired : List Effect -> (Int -> Int)
 movementImpaired effects =
-    case List.member MovementImpaired effects of
-        False ->
-            identity
+    if List.member MovementImpaired effects then
+        \d -> d // 2
 
-        True ->
-            \d -> d // 2
+    else
+        identity
 
 
 movementImproved : List Effect -> (Int -> Int)
 movementImproved effects =
-    case List.member MovementImproved effects of
-        False ->
-            identity
+    if List.member MovementImproved effects then
+        \d -> d * 2
 
-        True ->
-            \d -> d * 2
+    else
+        identity
 
 
 movementDistanceModifier : List Effect -> Int -> Int
@@ -51,22 +49,20 @@ scanningDistanceModifier effects distance =
     let
         getDistanceModifierFn =
             \eff ->
-                case List.member eff effects of
-                    False ->
-                        identity
+                if List.member eff effects then
+                    case eff of
+                        ScanningImpaired details ->
+                            if details.failing then
+                                \_ -> 0
 
-                    True ->
-                        case eff of
-                            ScanningImpaired details ->
-                                case details.failing of
-                                    False ->
-                                        \d -> d + 2
+                            else
+                                \d -> d + 2
 
-                                    True ->
-                                        \d -> 0
+                        _ ->
+                            identity
 
-                            _ ->
-                                identity
+                else
+                    identity
     in
     List.foldl
         (\eff fn ->
@@ -90,7 +86,7 @@ validMoveModel model newLocation =
             False
 
         Just l ->
-            case Debug.log "ts" model.turnState of
+            case model.turnState of
                 Nothing ->
                     False
 

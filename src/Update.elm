@@ -106,28 +106,23 @@ sectorClicked model coords =
                     ( model, Cmd.none )
 
                 Just t ->
-                    case Debug.log "Action" t.action of
+                    case t.action of
                         NoAction ->
                             ( model, Cmd.none )
 
                         Move movesLeft ->
                             -- coords is the new/clicked location, if it is enemy space then damage is suffered
-                            -- This is where I want to send a roll command
                             if validMove movesLeft l coords then
                                 ( { model
                                     | location = Just coords
                                     , sectors = scanningImproved t effects coords model.sectors
                                     , damage = enemySector (Data.Sector.getSector model coords) model.damage
                                     , turnState =
-                                        case movesLeft of
-                                            0 ->
-                                                Nothing
+                                        if (consumeMovementPoints movesLeft <| getCurrentSector model) < 1 then
+                                            Nothing
 
-                                            1 ->
-                                                Nothing
-
-                                            _ ->
-                                                Just { t | action = Move <| consumeMovementPoints movesLeft <| getCurrentSector model }
+                                        else
+                                            Just { t | action = Move <| consumeMovementPoints movesLeft <| getCurrentSector model }
                                   }
                                 , rollDice RolledDuringMove
                                 )
@@ -141,17 +136,16 @@ sectorClicked model coords =
                                     ( model, Cmd.none )
 
                                 Just s ->
-                                    case validMapSector effects t.roll.d10 s l coords of
-                                        True ->
-                                            ( { model
-                                                | sectors = updateSector (mapSector t) model.sectors coords
-                                                , turnState = Nothing
-                                              }
-                                            , Cmd.none
-                                            )
+                                    if validMapSector effects t.roll.d10 s l coords then
+                                        ( { model
+                                            | sectors = updateSector (mapSector t) model.sectors coords
+                                            , turnState = Nothing
+                                          }
+                                        , Cmd.none
+                                        )
 
-                                        _ ->
-                                            ( model, Cmd.none )
+                                    else
+                                        ( model, Cmd.none )
 
                         ResourceScan ->
                             case Data.Sector.getSector model coords of
@@ -159,17 +153,16 @@ sectorClicked model coords =
                                     ( model, Cmd.none )
 
                                 Just s ->
-                                    case validResourceScan t effects t.roll.d10 s l coords of
-                                        False ->
-                                            ( model, Cmd.none )
+                                    if validResourceScan t effects t.roll.d10 s l coords then
+                                        ( { model
+                                            | sectors = updateSector (resourceScan effects t) model.sectors coords
+                                            , turnState = Nothing
+                                          }
+                                        , Cmd.none
+                                        )
 
-                                        True ->
-                                            ( { model
-                                                | sectors = updateSector (resourceScan effects t) model.sectors coords
-                                                , turnState = Nothing
-                                              }
-                                            , Cmd.none
-                                            )
+                                    else
+                                        ( model, Cmd.none )
 
                         Anomaly ->
                             ( model, Cmd.none )
@@ -250,12 +243,11 @@ handleAnomaly model =
 
                                         destroyResources =
                                             \row col r ->
-                                                case gameDistance l { row = row, col = col } <= range of
-                                                    False ->
-                                                        r
+                                                if gameDistance l { row = row, col = col } <= range then
+                                                    { r | count = 0 }
 
-                                                    True ->
-                                                        { r | count = 0 }
+                                                else
+                                                    r
                                     in
                                     ( { model
                                         | sectors =
@@ -353,6 +345,7 @@ setUpgradeEffects upgrade model =
         eff =
             upgradeToEffect upgrade
     in
+    -- TODO: this needs to use a diff amount of resources to upgrade per thang
     if upgradeProgress upgrade model >= numResourcesToUpgrade then
         if List.member eff model.effects then
             model
