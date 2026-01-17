@@ -1,9 +1,10 @@
 module View.Rules exposing (..)
 
 import Data.Die exposing (dieToString)
+import Data.Resource exposing (resourceKindToName)
 import Html exposing (Attribute, Html)
 import Html.Attributes exposing (class, id, title)
-import Types exposing (Die(..), DieUseMeaning, DieUseMeaningValue(..), DieValueMeaning, Model, Msg)
+import Types exposing (Die(..), DieUseMeaning, DieUseMeaningValue(..), DieValueMeaning, Model, Msg, ResourceKind(..))
 
 
 details : List (Attribute msg) -> List (Html msg) -> Html msg
@@ -102,6 +103,76 @@ dieUseTable useMeanings =
         dieUseTableRows useMeanings
 
 
+upgradeUsableResourceKindsTableRow : Bool -> ResourceKind -> Html Msg
+upgradeUsableResourceKindsTableRow bottomBorder rk =
+    Html.div
+        [ class <|
+            if bottomBorder then
+                "flex border-r-1 border-black/25"
+
+            else
+                "flex"
+        ]
+        [ Html.div [ class "p-1 px-2" ] [ Html.text <| resourceKindToName rk ] ]
+
+
+upgradeUsableResourceKindsTableRows : List ResourceKind -> List (Html Msg)
+upgradeUsableResourceKindsTableRows valueMeanings =
+    case valueMeanings of
+        [ rk ] ->
+            [ upgradeUsableResourceKindsTableRow False rk ]
+
+        rk :: rest ->
+            upgradeUsableResourceKindsTableRow True rk :: upgradeUsableResourceKindsTableRows rest
+
+        [] ->
+            []
+
+
+upgradeUsableResourceKindsTable : List ResourceKind -> Html Msg
+upgradeUsableResourceKindsTable valueMeanings =
+    Html.div [ class "my-2 flex flex-row w-full" ] <|
+        upgradeUsableResourceKindsTableRows valueMeanings
+
+
+upgradeTableRow : Bool -> String -> String -> List ResourceKind -> Html Msg
+upgradeTableRow bottomBorder name benefit usableResourceKinds =
+    Html.div
+        [ class <|
+            if bottomBorder then
+                "flex border-b-1 border-black/25"
+
+            else
+                "flex"
+        ]
+        [ Html.div [ class "w-1/4 text-right p-1 pr-2 border-r-1 border-black/25" ] [ Html.text name ]
+        , Html.div [ class "w-3/4 p-1 pl-2" ]
+            [ Html.text benefit
+            , Html.div [ class "flex flex-row justify-around" ]
+                [ upgradeUsableResourceKindsTable usableResourceKinds ]
+            ]
+        ]
+
+
+upgradeTableRows : List ( String, String, List ResourceKind ) -> List (Html Msg)
+upgradeTableRows upgradeDetails =
+    case upgradeDetails of
+        [ ( name, benefit, usableResourceKinds ) ] ->
+            [ upgradeTableRow False name benefit usableResourceKinds ]
+
+        ( name, benefit, usableResourceKinds ) :: rest ->
+            upgradeTableRow True name benefit usableResourceKinds :: upgradeTableRows rest
+
+        [] ->
+            []
+
+
+upgradeTable : List ( String, String, List ResourceKind ) -> Html Msg
+upgradeTable upgradeDetails =
+    Html.div [ class "my-2 px-1" ] <|
+        upgradeTableRows upgradeDetails
+
+
 movement : Model -> Html Msg
 movement model =
     rulesSection "Movement"
@@ -177,25 +248,60 @@ resourceDiscovery model =
         ]
 
 
-actions : Model -> Html Msg
-actions model =
-    Html.div [ id "action-rules" ]
-        [ movement model
-        , mapping model
-        , resourceDiscovery model
+upgrades : Model -> Html Msg
+upgrades model =
+    rulesSection "Upgrades"
+        [ Html.text "Upgrades require 20 resources each to enable."
+        , upgradeTable
+            [ ( "Blink Drive", "Double movement points.", [ DarkMatter, ExoticMinerals, Water ] )
+            , ( "Terraforming Technology", "Use larger of d12 or d20 for resources in star system sectors.", [ RawMetals, MetalAlloys, Water ] )
+            , ( "Ship Repairs", "Increase resources discovered by 2 and decrease damage received by 1.", [ Silicon, MetalAlloys, Water ] )
+            , ( "Scanner Technology", "Automatically map and scan for resources when entering a sector.", [ Silicon, ExoticMinerals, Water ] )
+            ]
+        ]
+
+
+anomaly : Model -> Html Msg
+anomaly model =
+    rulesSection "Anomalies"
+        [ Html.text "When a 20 is rolled all players are forced to take the Anomaly action."
+        , dieUseTable
+            [ ( D4, "Anomaly Range", Simple "Determines the area of effect of the anomaly." )
+            , ( D8
+              , "Anomaly Type"
+              , Formatted
+                    [ Html.text "Determines the area of effect of the anomaly."
+                    , dieValueTable
+                        [ ( 1, "Space Rift (forces movement of d6 spaces)" )
+                        , ( 2, "Energy Surge (reduces mapping and scanning range by 2)" )
+                        , ( 3, "Asteroid Shower (causes d6 ship damage)" )
+                        , ( 4, "Gravitational Distortion (destroys resources within half of d4 range)" )
+                        , ( 5, "Temporal Distortion (doubles the cost of movement next turn)" )
+                        , ( 6, "Alien Signal (causes mapping and scanning to fail next turn)" )
+                        , ( 7, "Alien Encounter (causes d6 ship damage)" )
+                        , ( 8, "Space Pirates (takes resources from d6 different sectors within d4 range)" )
+                        ]
+                    ]
+              )
+            ]
         ]
 
 
 rules : Model -> Html Msg
 rules model =
     Html.div
-        -- TODO: make this container have scrollbar(s?) mmm but only in 2xl
         [ id "rules"
-        , class "flex flex-row justify-start mb-8 w-full p-2 overflow-y-auto"
+        , class "flex justify-start mb-8 w-full p-2 overflow-y-auto"
         ]
-        [ actions model
-        , Html.div [ id "upgrades-rules" ] []
-        , Html.div [ id "anomaly-rules" ] []
+        [ Html.div []
+            [ movement model
+            , mapping model
+            , resourceDiscovery model
+            , upgrades model
+            , anomaly model
+
+            -- scoring
+            ]
         ]
 
 
