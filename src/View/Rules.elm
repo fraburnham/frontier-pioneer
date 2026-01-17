@@ -178,7 +178,7 @@ movement model =
     rulesSection "Movement"
         [ Html.div [ class "flex flex-row" ]
             [ Html.text "When you pass through a sector you can collect the resources in it. Entering a sector"
-            , Html.div [ class "font-medium mx-[0.20rem]" ] [ Html.text "does not" ]
+            , Html.div [ class "italic mx-[0.20rem]" ] [ Html.text "does not" ]
             , Html.text "map it."
             ]
         , dieUseTable [ ( D4, "Warp Drive", Simple "Determines the maximum number of sectors a player can move." ) ]
@@ -254,7 +254,7 @@ upgrades model =
         [ Html.text "Upgrades require 20 resources each to enable."
         , upgradeTable
             [ ( "Blink Drive", "Double movement points.", [ DarkMatter, ExoticMinerals, Water ] )
-            , ( "Terraforming Technology", "Use larger of d12 or d20 for resources in star system sectors.", [ RawMetals, MetalAlloys, Water ] )
+            , ( "Terraforming Technology", "Use larger of d12 or d20 for quantity when resource scanning.", [ RawMetals, MetalAlloys, Water ] )
             , ( "Ship Repairs", "Increase resources discovered by 2 and decrease damage received by 1.", [ Silicon, MetalAlloys, Water ] )
             , ( "Scanner Technology", "Automatically map and scan for resources when entering a sector.", [ Silicon, ExoticMinerals, Water ] )
             ]
@@ -292,7 +292,7 @@ overview =
     rulesSection "Overview"
         [ Html.text
             """
-               Frontier Pioneer is a simultaneous, roll-and-write game with a fixed number of rounds where players explore procedurally generated space
+            Frontier Pioneer is a simultaneous, roll-and-write game with a fixed number of rounds where players explore procedurally generated space
 sectors, scan for resources, and upgrade their ships. Players do not take turns; instead, they independently choose actions based on the
 results of a shared dice pool. There are 30 rolls total for approximately 15min of play time.
             """
