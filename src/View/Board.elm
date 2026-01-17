@@ -171,7 +171,7 @@ actionButtons model =
                                 movementDistanceModifier (activeEffects model) t.roll.d4
                         in
                         [ Html.div
-                            [ if
+                            (if
                                 sectorMap
                                     (\newLocation _ ->
                                         validMoveModel model newLocation
@@ -180,18 +180,19 @@ actionButtons model =
                                     |> flatten
                                     |> Array.toList
                                     |> List.any identity
-                              then
-                                buttonStyle
+                             then
+                                [ buttonStyle
+                                , onClick (SelectedAction (Move moveDistance))
+                                , onMouseEnter (HoveredAction (Move moveDistance))
+                                , onMouseLeave UnhoveredAction
+                                ]
 
-                              else
-                                buttonInactiveStyle
-                            , onClick (SelectedAction (Move moveDistance)) -- TODO: don't actually let people click it either
-                            , onMouseEnter (HoveredAction (Move moveDistance))
-                            , onMouseLeave UnhoveredAction
-                            ]
+                             else
+                                [ buttonInactiveStyle ]
+                            )
                             [ Html.text "Move" ]
                         , Html.div
-                            [ if
+                            (if
                                 sectorMap
                                     (\newLocation _ ->
                                         validMapSectorModel model newLocation
@@ -200,18 +201,19 @@ actionButtons model =
                                     |> flatten
                                     |> Array.toList
                                     |> List.any identity
-                              then
-                                buttonStyle
+                             then
+                                [ buttonStyle
+                                , onClick (SelectedAction MapSector)
+                                , onMouseEnter (HoveredAction MapSector)
+                                , onMouseLeave UnhoveredAction
+                                ]
 
-                              else
-                                buttonInactiveStyle
-                            , onClick (SelectedAction MapSector) -- TODO: don't actually let people click it either
-                            , onMouseEnter (HoveredAction MapSector)
-                            , onMouseLeave UnhoveredAction
-                            ]
+                             else
+                                [ buttonInactiveStyle ]
+                            )
                             [ Html.text "Map Sector" ]
                         , Html.div
-                            [ if
+                            (if
                                 sectorMap
                                     (\newLocation _ ->
                                         validResourceScanModel model newLocation
@@ -221,14 +223,15 @@ actionButtons model =
                                     |> Array.toList
                                     |> List.any identity
                               then
-                                buttonStyle
+                                [ buttonStyle
+                                , onClick (SelectedAction ResourceScan)
+                                , onMouseEnter (HoveredAction ResourceScan)
+                                , onMouseLeave UnhoveredAction
+                                ]
 
                               else
-                                buttonInactiveStyle
-                            , onClick (SelectedAction ResourceScan) -- TODO: don't actually let people click it either
-                            , onMouseEnter (HoveredAction ResourceScan)
-                            , onMouseLeave UnhoveredAction
-                            ]
+                                [ buttonInactiveStyle ]
+                            )
                             [ Html.text "Resource Scan" ]
                         ]
 
